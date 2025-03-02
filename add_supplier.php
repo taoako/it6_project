@@ -9,20 +9,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $supplier_id = trim($_POST['supplier_id']); // Manually entered supplier ID
     $supplier_name = trim($_POST['supplier_name']);
     $contact_number = trim($_POST['contact_number']);
+    $address = trim($_POST['address']);
+    $contact_person = trim($_POST['contact_person']);
     $products = $_POST['products'] ?? [];
 
-    if (empty($supplier_id) || empty($supplier_name) || empty($contact_number) || empty($products)) {
+    if (empty($supplier_id) || empty($supplier_name) || empty($contact_number) || empty($address) || empty($contact_person) || empty($products)) {
         echo "<script>alert('All fields are required!'); window.history.back();</script>";
         exit;
     }
 
     // Insert supplier details with manual supplier_id
-    $stmt_supplier = $conn->prepare("INSERT INTO suppliers (supplier_id, name, contact_number) VALUES (?, ?, ?)");
+    $stmt_supplier = $conn->prepare("INSERT INTO suppliers (supplier_id, name, contact_number, address, contact_person) VALUES (?, ?, ?, ?, ?)");
     if (!$stmt_supplier) {
         die("Error preparing supplier statement: " . $conn->error);
     }
-    $stmt_supplier->bind_param("sss", $supplier_id, $supplier_name, $contact_number);
-    
+    $stmt_supplier->bind_param("sssss", $supplier_id, $supplier_name, $contact_number, $address, $contact_person);
+
     if ($stmt_supplier->execute()) {
         // Insert supplier-product mapping
         $stmt_mapping = $conn->prepare("INSERT INTO stock_supplier (supplier_id, product_id) VALUES (?, ?)");
@@ -45,12 +47,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Supplier</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body class="bg-light">
     <div class="container mt-5">
         <div class="card shadow p-4">
@@ -69,6 +73,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="mb-3">
                     <label class="form-label">Contact Number:</label>
                     <input type="text" class="form-control" name="contact_number" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Address:</label>
+                    <input type="text" class="form-control" name="address" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Contact Person:</label>
+                    <input type="text" class="form-control" name="contact_person" required>
                 </div>
 
                 <div class="mb-3">
@@ -94,4 +108,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
