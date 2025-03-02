@@ -2,6 +2,7 @@
 include 'db_connection.php';
 include 'fetch_stock_in.php';
 
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['delete_stock_in'])) {
         $stock_in_id = $_POST['stock_in_id'];
@@ -263,37 +264,41 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                 </div>
             <?php
-            } elseif (isset($_GET['page']) && $_GET['page'] == 'suppliers') {
+            } else if (isset($_GET['page']) && $_GET['page'] == 'suppliers') {
             ?>
                 <div class="card">
                     <h3>Suppliers</h3>
                     <button class="add-button" onclick="location.href='add_supplier.php'"><i class="fas fa-plus-circle"></i> Add Supplier</button>
-                    <table>
+                    <table class="table table-striped">
                         <thead>
                             <tr>
                                 <th>Supplier ID</th>
                                 <th>Supplier Name</th>
                                 <th>Contact Number</th>
+                                <th>Address</th>
+                                <th>Contact Person</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php
-                            $suppliers = fetchSuppliers($conn);
-                            if (!empty($suppliers)) {
-                                foreach ($suppliers as $supplier) {
+                            $suppliers = $conn->query("SELECT * FROM suppliers");
+                            if ($suppliers->num_rows > 0) {
+                                while ($supplier = $suppliers->fetch_assoc()) {
                                     echo "<tr>
-                                            <td>{$supplier['supplier_id']}</td>
-                                            <td>{$supplier['name']}</td>
-                                            <td>{$supplier['contact_number']}</td>
-                                            <td>
-                                                <a href='edit_supplier.php?supplier_id={$supplier['supplier_id']}' class='btn btn-warning btn-sm'>Edit</a>
-                                                <a href='delete_supplier.php?supplier_id={$supplier['supplier_id']}' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this supplier?\")'>Delete</a>
-                                            </td>
-                                          </tr>";
+                                                <td>{$supplier['supplier_id']}</td>
+                                                <td>{$supplier['name']}</td>
+                                                <td>{$supplier['contact_number']}</td>
+                                                <td>{$supplier['address']}</td>
+                                                <td>{$supplier['contact_person']}</td>
+                                                <td>
+                                                    <a href='edit_supplier.php?supplier_id={$supplier['supplier_id']}' class='btn btn-warning btn-sm'>Edit</a>
+                                                    <a href='delete_supplier.php?supplier_id={$supplier['supplier_id']}' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this supplier?\")'>Delete</a>
+                                                </td>
+                                              </tr>";
                                 }
                             } else {
-                                echo "<tr><td colspan='4' class='text-center'>No Suppliers Found</td></tr>";
+                                echo "<tr><td colspan='6' class='text-center'>No Suppliers Found</td></tr>";
                             }
                             ?>
                         </tbody>
@@ -302,7 +307,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <?php
             } elseif (isset($_GET['page']) && $_GET['page'] == 'stock_out') {
                 include 'stock_out.php';
-            } elseif (isset($_GET['page']) && $_GET['page'] == 'products') {
+            } else if (isset($_GET['page']) && $_GET['page'] == 'products') {
             ?>
                 <div class="card">
                     <h3>Products</h3>
@@ -313,8 +318,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <th>Product ID</th>
                                 <th>Product Name</th>
                                 <th>Category</th>
-                                <th>Price</th>
-                                <th>Stock</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -323,15 +326,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             if (!empty($products)) {
                                 foreach ($products as $product) {
                                     echo "<tr>
-                                            <td>{$product['product_id']}</td>
-                                            <td>{$product['name']}</td>
-                                            <td>{$product['category']}</td>
-                                            <td>{$product['selling_price']}</td>
-                                            <td>{$product['quantity']}</td>
-                                          </tr>";
+                                                <td>{$product['product_id']}</td>
+                                                <td>{$product['name']}</td>
+                                                <td>{$product['category_name']}</td>
+                                              </tr>";
                                 }
                             } else {
-                                echo "<tr><td colspan='5' class='text-center'>No Products Found</td></tr>";
+                                echo "<tr><td colspan='3' class='text-center'>No Products Found</td></tr>";
                             }
                             ?>
                         </tbody>
