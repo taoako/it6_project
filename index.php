@@ -2,6 +2,7 @@
 include 'db_connection.php';
 include 'fetch_stock_in.php';
 
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['delete_stock_in'])) {
         $stock_in_id = $_POST['stock_in_id'];
@@ -302,7 +303,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <?php
             } elseif (isset($_GET['page']) && $_GET['page'] == 'stock_out') {
                 include 'stock_out.php';
-            } elseif (isset($_GET['page']) && $_GET['page'] == 'products') {
+            } else if (isset($_GET['page']) && $_GET['page'] == 'products') {
             ?>
                 <div class="card">
                     <h3>Products</h3>
@@ -313,8 +314,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <th>Product ID</th>
                                 <th>Product Name</th>
                                 <th>Category</th>
-                                <th>Price</th>
-                                <th>Stock</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -323,15 +322,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             if (!empty($products)) {
                                 foreach ($products as $product) {
                                     echo "<tr>
-                                            <td>{$product['product_id']}</td>
-                                            <td>{$product['name']}</td>
-                                            <td>{$product['category']}</td>
-                                            <td>{$product['selling_price']}</td>
-                                            <td>{$product['quantity']}</td>
-                                          </tr>";
+                                                <td>{$product['product_id']}</td>
+                                                <td>{$product['name']}</td>
+                                                <td>{$product['category_name']}</td>
+                                              </tr>";
                                 }
                             } else {
-                                echo "<tr><td colspan='5' class='text-center'>No Products Found</td></tr>";
+                                echo "<tr><td colspan='3' class='text-center'>No Products Found</td></tr>";
                             }
                             ?>
                         </tbody>
