@@ -2,7 +2,6 @@
 include 'db_connection.php';
 include 'fetch_stock_in.php';
 
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['delete_stock_in'])) {
         $stock_in_id = $_POST['stock_in_id'];
@@ -64,6 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         .container {
             display: flex;
+            margin: 0;
+            padding: 0;
         }
 
         .sidebar {
@@ -168,6 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <th>Supplier ID</th>
                                 <th>Product ID</th>
                                 <th>Quantity</th>
+                                <th>Original Price</th>
                                 <th>Total Cost</th>
                                 <th>Purchase Date</th>
                                 <th>Actions</th>
@@ -183,6 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             <td>{$detail['supplier_id']}</td>
                                             <td>{$detail['product_id']}</td>
                                             <td>{$detail['quantity']}</td>
+                                            <td>{$detail['orig_price']}</td>
                                             <td>{$detail['total_cost']}</td>
                                             <td>{$detail['purchase_date']}</td>
                                             <td>
@@ -203,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                           </tr>";
                                 }
                             } else {
-                                echo "<tr><td colspan='7' class='text-center'>No Stock-In Records</td></tr>";
+                                echo "<tr><td colspan='8' class='text-center'>No Stock-In Records</td></tr>";
                             }
                             ?>
                         </tbody>
@@ -211,7 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
                 <div class="card">
                     <h3>Stocks</h3>
-                    <button class="add-button" onclick="location.href='add_stock.php'">+ Add Stocks</button>
+                    <button class="add-button" type="button" data-bs-toggle="modal" data-bs-target="#addStockModal">+ Add Stocks</button>
                     <!-- Collapsible Stocks Table -->
                     <button class="btn btn-primary mt-3" type="button" data-bs-toggle="collapse" data-bs-target="#stocksTable" aria-expanded="false" aria-controls="stocksTable">
                         Show/Hide Stocks
@@ -225,7 +228,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <th>Product ID</th>
                                     <th>Expiry Date</th>
                                     <th>Quantity</th>
-                                    <th>Original Price</th>
                                     <th>Selling Price</th>
                                     <th>Actions</th>
                                 </tr>
@@ -241,7 +243,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <td>{$stock['product_id']}</td>
                                                 <td>{$stock['expiry_date']}</td>
                                                 <td>{$stock['quantity']}</td>
-                                                <td>{$stock['original_price']}</td>
                                                 <td>{$stock['selling_price']}</td>
                                                 <td>
                                                     <form method='POST' action='edit_stock.php' style='display:inline-block;'>
@@ -256,7 +257,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                               </tr>";
                                     }
                                 } else {
-                                    echo "<tr><td colspan='8' class='text-center'>No stock found</td></tr>";
+                                    echo "<tr><td colspan='7' class='text-center'>No stock found</td></tr>";
                                 }
                                 ?>
                             </tbody>
@@ -349,6 +350,92 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             ?>
         </div>
     </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addStockModalLabel">Add Stock</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="add_stock.php">
+                        <div class="mb-3">
+                            <label for="supplier_id" class="form-label">Supplier</label>
+                            <select class="form-select" name="supplier_id" id="supplier_id" required>
+                                <option value="">Select Supplier</option>
+                                <?php
+                                $suppliers = $conn->query("SELECT * FROM suppliers");
+                                while ($row = $suppliers->fetch_assoc()) {
+                                    echo "<option value='{$row['supplier_id']}'>{$row['name']}</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="product_id" class="form-label">Product</label>
+                            <select class="form-select" name="product_id" id="product_id" required>
+                                <option value="">Choose Product</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="quantity" class="form-label">Quantity</label>
+                            <input type="number" class="form-control" name="quantity" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="original_price" class="form-label">Original Price</label>
+                            <input type="number" step="0.01" class="form-control" name="original_price" id="original_price" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="selling_price" class="form-label">Selling Price</label>
+                            <input type="number" step="0.01" class="form-control" name="selling_price" id="selling_price" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="expiry_date" class="form-label">Expiry Date</label>
+                            <input type="date" class="form-control" name="expiry_date" required>
+                        </div>
+                        <button type="submit" name="add_stock" class="btn btn-success">Add Stock</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery for AJAX to fetch products -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#supplier_id').change(function() {
+                var supplier_id = $(this).val();
+                if (supplier_id) {
+                    $.ajax({
+                        url: 'fetch_products.php',
+                        type: 'POST',
+                        data: {
+                            supplier_id: supplier_id
+                        },
+                        success: function(response) {
+                            $('#product_id').html(response);
+                        }
+                    });
+                } else {
+                    $('#product_id').html('<option value="">Choose Product</option>');
+                }
+            });
+
+            $('#original_price').on('input', function() {
+                var originalPrice = parseFloat($(this).val());
+                if (!isNaN(originalPrice)) {
+                    var sellingPrice = originalPrice * 1.30;
+                    $('#selling_price').val(sellingPrice.toFixed(2));
+                } else {
+                    $('#selling_price').val('');
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

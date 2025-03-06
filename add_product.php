@@ -6,13 +6,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $product_id = $_POST['product_id'];
         $name = $_POST['name'];
         $category_id = $_POST['category_id'];
+        $image = $_FILES['image']['name'];
+        $target_dir = "uploads/";
+        $target_file = $target_dir . basename($image);
 
-        // Insert new product
-        $query = "INSERT INTO products (product_id, name, category_id) VALUES ('$product_id', '$name', '$category_id')";
-        if ($conn->query($query) === TRUE) {
-            echo "<script>alert('Product added successfully!'); window.location.href='index.php?page=products';</script>";
+        // Move the uploaded file to the target directory
+        if (move_uploaded_file($_FILES['image']['tmp_name'], $target_file)) {
+            // Insert new product
+            $query = "INSERT INTO products (product_id, name, category_id, image) VALUES ('$product_id', '$name', '$category_id', '$target_file')";
+            if ($conn->query($query) === TRUE) {
+                echo "<script>alert('Product added successfully!'); window.location.href='index.php?page=products';</script>";
+            } else {
+                echo "<script>alert('Error: " . $conn->error . "');</script>";
+            }
         } else {
-            echo "<script>alert('Error: " . $conn->error . "');</script>";
+            echo "<script>alert('Error uploading image.');</script>";
         }
     } elseif (isset($_POST['add_category'])) {
         $new_category = $_POST['new_category'];
@@ -43,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="card border-success">
             <div class="card-body">
                 <h5 class="card-title">Add Product</h5>
-                <form method="POST" action="">
+                <form method="POST" action="" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label for="product_id" class="form-label">Product ID</label>
                         <input type="text" class="form-control" name="product_id" required>
@@ -63,6 +71,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             }
                             ?>
                         </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Product Image</label>
+                        <input type="file" class="form-control" name="image" required>
                     </div>
                     <button type="submit" name="add_product" class="btn btn-success">Add Product</button>
                     <a href="index.php?page=products" class="btn btn-secondary">Cancel</a>
