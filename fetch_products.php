@@ -19,4 +19,3 @@ if (isset($_POST['supplier_id'])) {
         echo "<option value=''>No products available</option>";
     }
 }
-?>
