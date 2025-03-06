@@ -10,6 +10,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $target_dir = "uploads/";
         $target_file = $target_dir . basename($image);
 
+        // Check if the uploads directory exists, if not create it
+        if (!is_dir($target_dir)) {
+            mkdir($target_dir, 0777, true);
+        }
+
         // Move the uploaded file to the target directory
         if (move_uploaded_file($_FILES['image']['tmp_name'], $target_file)) {
             // Insert new product

@@ -319,6 +319,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <th>Product ID</th>
                                 <th>Product Name</th>
                                 <th>Category</th>
+                                <th>Image</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -330,10 +332,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <td>{$product['product_id']}</td>
                                                 <td>{$product['name']}</td>
                                                 <td>{$product['category_name']}</td>
-                                              </tr>";
+                                                <td><img src='{$product['image']}' alt='{$product['name']}' width='50'></td>
+                                                <td>
+                                                    <a href='edit_product.php?id={$product['product_id']}' class='btn btn-warning btn-sm'>Edit</a>
+                                                    <a href='delete_product.php?id={$product['product_id']}' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this product?\")'>Delete</a>
+                                                </td>
+                                            </tr>";
                                 }
                             } else {
-                                echo "<tr><td colspan='3' class='text-center'>No Products Found</td></tr>";
+                                echo "<tr><td colspan='5' class='text-center'>No Products Found</td></tr>";
                             }
                             ?>
                         </tbody>
@@ -350,92 +357,102 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             ?>
         </div>
     </div>
+</body>
 
-    <!-- Modal -->
-    <div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addStockModalLabel">Add Stock</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form method="POST" action="add_stock.php">
-                        <div class="mb-3">
-                            <label for="supplier_id" class="form-label">Supplier</label>
-                            <select class="form-select" name="supplier_id" id="supplier_id" required>
-                                <option value="">Select Supplier</option>
-                                <?php
-                                $suppliers = $conn->query("SELECT * FROM suppliers");
-                                while ($row = $suppliers->fetch_assoc()) {
-                                    echo "<option value='{$row['supplier_id']}'>{$row['name']}</option>";
-                                }
-                                ?>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="product_id" class="form-label">Product</label>
-                            <select class="form-select" name="product_id" id="product_id" required>
-                                <option value="">Choose Product</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="quantity" class="form-label">Quantity</label>
-                            <input type="number" class="form-control" name="quantity" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="original_price" class="form-label">Original Price</label>
-                            <input type="number" step="0.01" class="form-control" name="original_price" id="original_price" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="selling_price" class="form-label">Selling Price</label>
-                            <input type="number" step="0.01" class="form-control" name="selling_price" id="selling_price" readonly>
-                        </div>
-                        <div class="mb-3">
-                            <label for="expiry_date" class="form-label">Expiry Date</label>
-                            <input type="date" class="form-control" name="expiry_date" required>
-                        </div>
-                        <button type="submit" name="add_stock" class="btn btn-success">Add Stock</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    </form>
-                </div>
+</html>
+<?php
+if ($conn) {
+    $conn->close();
+}
+?>
+</div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addStockModalLabel">Add Stock</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="add_stock.php">
+                    <div class="mb-3">
+                        <label for="supplier_id" class="form-label">Supplier</label>
+                        <select class="form-select" name="supplier_id" id="supplier_id" required>
+                            <option value="">Select Supplier</option>
+                            <?php
+                            $suppliers = $conn->query("SELECT * FROM suppliers");
+                            while ($row = $suppliers->fetch_assoc()) {
+                                echo "<option value='{$row['supplier_id']}'>{$row['name']}</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="product_id" class="form-label">Product</label>
+                        <select class="form-select" name="product_id" id="product_id" required>
+                            <option value="">Choose Product</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Quantity</label>
+                        <input type="number" class="form-control" name="quantity" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="original_price" class="form-label">Original Price</label>
+                        <input type="number" step="0.01" class="form-control" name="original_price" id="original_price" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="selling_price" class="form-label">Selling Price</label>
+                        <input type="number" step="0.01" class="form-control" name="selling_price" id="selling_price" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="expiry_date" class="form-label">Expiry Date</label>
+                        <input type="date" class="form-control" name="expiry_date" required>
+                    </div>
+                    <button type="submit" name="add_stock" class="btn btn-success">Add Stock</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </form>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- jQuery for AJAX to fetch products -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('#supplier_id').change(function() {
-                var supplier_id = $(this).val();
-                if (supplier_id) {
-                    $.ajax({
-                        url: 'fetch_products.php',
-                        type: 'POST',
-                        data: {
-                            supplier_id: supplier_id
-                        },
-                        success: function(response) {
-                            $('#product_id').html(response);
-                        }
-                    });
-                } else {
-                    $('#product_id').html('<option value="">Choose Product</option>');
-                }
-            });
-
-            $('#original_price').on('input', function() {
-                var originalPrice = parseFloat($(this).val());
-                if (!isNaN(originalPrice)) {
-                    var sellingPrice = originalPrice * 1.30;
-                    $('#selling_price').val(sellingPrice.toFixed(2));
-                } else {
-                    $('#selling_price').val('');
-                }
-            });
+<!-- jQuery for AJAX to fetch products -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#supplier_id').change(function() {
+            var supplier_id = $(this).val();
+            if (supplier_id) {
+                $.ajax({
+                    url: 'fetch_products.php',
+                    type: 'POST',
+                    data: {
+                        supplier_id: supplier_id
+                    },
+                    success: function(response) {
+                        $('#product_id').html(response);
+                    }
+                });
+            } else {
+                $('#product_id').html('<option value="">Choose Product</option>');
+            }
         });
-    </script>
+
+        $('#original_price').on('input', function() {
+            var originalPrice = parseFloat($(this).val());
+            if (!isNaN(originalPrice)) {
+                var sellingPrice = originalPrice * 1.30;
+                $('#selling_price').val(sellingPrice.toFixed(2));
+            } else {
+                $('#selling_price').val('');
+            }
+        });
+    });
+</script>
 </body>
 
 </html>

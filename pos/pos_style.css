@@ -124,3 +124,13 @@ body {
     background: #ffdddd;
     border-color: #fab2b2;
 }
+
+.product-card img {
+    display: block;
+    margin: 0 auto 8px;
+    /* center the image, add spacing */
+    max-width: 120px;
+    max-height: 120px;
+    object-fit: cover;
+    /* crop if aspect ratio doesn't match */
+}

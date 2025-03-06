@@ -129,6 +129,11 @@ $grandTotal = calculateTotal();
                             PHP <?php echo number_format($prod['selling_price'], 2); ?>
                         </div>
                         <div>Stock: <?php echo (int)$prod['quantity']; ?></div>
+                        <div>
+                            <img src="../<?php echo htmlspecialchars($prod['image']); ?>" alt="<?php echo htmlspecialchars($prod['product_name']); ?>" width="100">
+                            <!-- Debugging: Display the image path -->
+
+                        </div>
                         <form method="POST" action="">
                             <input type="hidden" name="product_id" value="<?php echo $prod['product_id']; ?>">
                             <input type="hidden" name="product_name" value="<?php echo htmlspecialchars($prod['product_name']); ?>">

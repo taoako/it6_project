@@ -46,9 +46,11 @@ function fetchSuppliers($conn)
 
 function fetchProducts($conn)
 {
-    $query = "SELECT p.product_id, p.name, c.name AS category_name
-              FROM products p
-              LEFT JOIN categories c ON p.category_id = c.category_id";
+    $query = "
+        SELECT p.product_id, p.name, c.name as category_name, p.image
+        FROM products p
+        JOIN categories c ON p.category_id = c.category_id
+    ";
     $result = $conn->query($query);
     $products = [];
     if ($result->num_rows > 0) {

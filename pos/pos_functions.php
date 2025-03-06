@@ -1,4 +1,3 @@
-
 <?php
 // pos_functions.php
 
@@ -20,13 +19,13 @@ function fetchCategories($conn)
 /**
  * Fetch products (and optional stock info) filtered by category, search, and sort order.
  * Return an array of product records with fields:
- *   product_id, product_name, category_name, selling_price, quantity
+ *   product_id, product_name, category_name, selling_price, quantity, image
  */
 function fetchProducts($conn, $category = 'All', $search = '', $sort = 'name')
 {
     // Build base query
     $query = "
-        SELECT p.product_id, p.name AS product_name, c.name AS category_name,
+        SELECT p.product_id, p.name AS product_name, p.image, c.name AS category_name,
                s.selling_price, s.quantity
           FROM products p
      LEFT JOIN categories c ON p.category_id = c.category_id
