@@ -1,17 +1,50 @@
 <?php
 include '../db_connection.php';
 
+// Check if the employee table needs to be updated with new fields
+$result = $conn->query("SHOW COLUMNS FROM employee LIKE 'first_name'");
+$firstNameExists = $result->num_rows > 0;
+
+$result = $conn->query("SHOW COLUMNS FROM employee LIKE 'last_name'");
+$lastNameExists = $result->num_rows > 0;
+
+$result = $conn->query("SHOW COLUMNS FROM employee LIKE 'role'");
+$roleExists = $result->num_rows > 0;
+
+// Add missing columns if needed
+if (!$firstNameExists) {
+    $conn->query("ALTER TABLE employee ADD COLUMN first_name VARCHAR(50) DEFAULT ''");
+}
+if (!$lastNameExists) {
+    $conn->query("ALTER TABLE employee ADD COLUMN last_name VARCHAR(50) DEFAULT ''");
+}
+if (!$roleExists) {
+    $conn->query("ALTER TABLE employee ADD COLUMN role VARCHAR(20) DEFAULT 'employee'");
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $name = $_POST['name'];
+    $first_name = $_POST['first_name'];
+    $last_name = $_POST['last_name'];
     $password = $_POST['password'];
+    $role = isset($_POST['role']) ? $_POST['role'] : 'employee';
+    
+    // Hash the password for security
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-    $sql = "INSERT INTO employee (name, password) VALUES ('$name', '$password')";
-    if ($conn->query($sql) === TRUE) {
-    $result = mysqli_query($conn, $sql);
+    // Use prepared statement for security
+    $stmt = $conn->prepare("INSERT INTO employee (name, password, first_name, last_name, role) 
+            VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssss", $name, $hashed_password, $first_name, $last_name, $role);
+            
+    if ($stmt->execute()) {
+        // Redirect to login page after successful signup
         echo "<script>alert('Registration successful! Please login.'); window.location.href='login.php';</script>";
+        exit; // Stop further execution
     } else {
         echo "<script>alert('Error: " . $conn->error . "');</script>";
     }
+    $stmt->close();
 }
 ?>
 
@@ -20,28 +53,95 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
+    <title>Sign Up - Daddy's Nook</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg,rgb(132, 240, 135),hsl(122, 50.20%, 44.90%));
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
+        }
+        .signup-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            width: 100%;
+            max-width: 500px;
+        }
+        .form-control {
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+        }
+    </style>
 </head>
-<body class="bg-light">
-    <div class="container mt-5">
-        <div class="card border-success">
-            <div class="card-body">
-                <h5 class="card-title">Sign Up</h5>
-                <form method="POST" action="">
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Username</label>
-                        <input type="text" class="form-control" name="name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" name="password" required>
-                    </div>
-                    <button type="submit" class="btn btn-success">Sign Up</button>
-                    <a href="login.php" class="btn btn-secondary">Back to Login</a>
-                </form>
+<body>
+    <div class="signup-card">
+        <h2 class="text-center mb-4">Sign Up for Daddy's Nook</h2>
+        <form method="POST" action="" onsubmit="return validateForm()">
+            <div class="mb-3">
+                <label for="name" class="form-label">Username</label>
+                <input type="text" class="form-control" name="name" required>
             </div>
-        </div>
+            <div class="mb-3">
+                <label for="first_name" class="form-label">First Name</label>
+                <input type="text" class="form-control" name="first_name" required>
+            </div>
+            <div class="mb-3">
+                <label for="last_name" class="form-label">Last Name</label>
+                <input type="text" class="form-control" name="last_name" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            <div class="mb-3">
+                <label for="confirm_password" class="form-label">Confirm Password</label>
+                <input type="password" class="form-control" id="confirm_password" required>
+                <div id="password-feedback" class="form-text text-danger d-none">
+                    Passwords do not match.
+                </div>
+            </div>
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-success btn-lg" id="submit-btn">Sign Up</button>
+                <a href="user_signup.php" class="btn btn-outline-primary">Sign Up as User</a>
+                <a href="login.php" class="btn btn-secondary">Back to Login</a>
+            </div>
+        </form>
     </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Password confirmation check
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordField = document.getElementById('password');
+            const confirmPasswordField = document.getElementById('confirm_password');
+            const feedbackElement = document.getElementById('password-feedback');
+            const submitButton = document.getElementById('submit-btn');
+            
+            function checkPasswords() {
+                if (passwordField.value !== confirmPasswordField.value) {
+                    feedbackElement.classList.remove('d-none');
+                    submitButton.disabled = true;
+                    return false;
+                } else {
+                    feedbackElement.classList.add('d-none');
+                    submitButton.disabled = false;
+                    return true;
+                }
+            }
+            
+            passwordField.addEventListener('input', checkPasswords);
+            confirmPasswordField.addEventListener('input', checkPasswords);
+            
+            // Add form validation
+            window.validateForm = function() {
+                return checkPasswords();
+            };
+        });
+    </script>
 </body>
 </html>
