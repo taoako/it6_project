@@ -2,6 +2,10 @@
 include 'db_connection.php';
 include 'fetch_stock_in.php';
 
+$records_per_page = 5;
+
+
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['delete_stock_in'])) {
         $stock_in_id = $_POST['stock_in_id'];
@@ -36,109 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-
-        .dashboard-header {
-            background-color: #00ff99;
-            color: white;
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-            padding: 15px 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .dashboard-header img {
-            height: 50px;
-            margin-right: 15px;
-        }
-
-        .container {
-            display: flex;
-            margin: 0;
-            padding: 0;
-        }
-
-        .sidebar {
-            width: 250px;
-            background-color: #28a745;
-            padding: 20px;
-            min-height: 100vh;
-        }
-
-        .sidebar button {
-            width: 100%;
-            background-color: white;
-            border: none;
-            padding: 15px;
-            margin: 10px 0;
-            font-size: 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .sidebar button:hover {
-            background-color: #ccc;
-        }
-
-        .logout {
-            background-color: #ff4d4d !important;
-            color: white;
-        }
-
-        .logout:hover {
-            background-color: #ff3333 !important;
-        }
-
-        .content {
-            flex-grow: 1;
-            padding: 20px;
-        }
-
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        table,
-        th,
-        td {
-            border: 1px solid #ccc;
-        }
-
-        th,
-        td {
-            padding: 10px;
-            text-align: left;
-        }
-
-        .add-button {
-            background-color: #28a745;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-    </style>
+    <link rel="stylesheet" href="../css/index_styles.css">
 </head>
 
 <body>
@@ -159,6 +61,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="content">
             <?php
             if (isset($_GET['page']) && $_GET['page'] == 'inventory') {
+                $page = isset($_GET['pageno']) ? (int)$_GET['pageno'] : 1;
+                $start_from = ($page - 1) * $records_per_page;
+                $total_pages_sql = "SELECT COUNT(*) FROM stockintransaction";
+                $result = $conn->query($total_pages_sql);
+                $total_rows = $result->fetch_array()[0];
+                $total_pages = ceil($total_rows / $records_per_page);
+
+                $stockInTransaction = fetchPaginatedStockInTransaction($conn, $start_from, $records_per_page);
             ?>
                 <div class="card">
                     <h3>Stock In</h3>
@@ -177,7 +87,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </thead>
                         <tbody>
                             <?php
-                            $stockInTransaction = fetchStockInTransaction($conn);
                             if (!empty($stockInTransaction)) {
                                 foreach ($stockInTransaction as $detail) {
                                     echo "<tr>
@@ -211,10 +120,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             ?>
                         </tbody>
                     </table>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
+                                <a class="page-link" href="<?php if ($page > 1) echo "?page=inventory&pageno=" . ($page - 1);
+                                                            else echo '#'; ?>">Previous</a>
+                            </li>
+                            <?php for ($i = 1; $i <= $total_pages; $i++) { ?>
+                                <li class="page-item <?php if ($page == $i) echo 'active'; ?>"><a class="page-link" href="?page=inventory&pageno=<?php echo $i; ?>"><?php echo $i; ?></a></li>
+                            <?php } ?>
+                            <li class="page-item <?php if ($page >= $total_pages) echo 'disabled'; ?>">
+                                <a class="page-link" href="<?php if ($page < $total_pages) echo "?page=inventory&pageno=" . ($page + 1);
+                                                            else echo '#'; ?>">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
                 <div class="card">
                     <h3>Stocks</h3>
-                    <button class="add-button" type="button" data-bs-toggle="modal" data-bs-target="#addStockModal">+ Add Stocks</button>
+
                     <!-- Collapsible Stocks Table -->
                     <button class="btn btn-primary mt-3" type="button" data-bs-toggle="collapse" data-bs-target="#stocksTable" aria-expanded="false" aria-controls="stocksTable">
                         Show/Hide Stocks
@@ -234,7 +158,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </thead>
                             <tbody>
                                 <?php
-                                $stocks = fetchStocks($conn);
+                                $page = isset($_GET['pageno']) ? (int)$_GET['pageno'] : 1;
+                                $start_from = ($page - 1) * $records_per_page;
+                                $total_pages_sql = "SELECT COUNT(*) FROM stocks";
+                                $result = $conn->query($total_pages_sql);
+                                $total_rows = $result->fetch_array()[0];
+                                $total_pages = ceil($total_rows / $records_per_page);
+
+                                $stocks = fetchPaginatedStocks($conn, $start_from, $records_per_page);
                                 if (!empty($stocks)) {
                                     foreach ($stocks as $stock) {
                                         echo "<tr>
@@ -262,10 +193,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 ?>
                             </tbody>
                         </table>
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination">
+                                <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
+                                    <a class="page-link" href="<?php if ($page > 1) echo "?page=inventory&pageno=" . ($page - 1);
+                                                                else echo '#'; ?>">Previous</a>
+                                </li>
+                                <?php for ($i = 1; $i <= $total_pages; $i++) { ?>
+                                    <li class="page-item <?php if ($page == $i) echo 'active'; ?>"><a class="page-link" href="?page=inventory&pageno=<?php echo $i; ?>"><?php echo $i; ?></a></li>
+                                <?php } ?>
+                                <li class="page-item <?php if ($page >= $total_pages) echo 'disabled'; ?>">
+                                    <a class="page-link" href="<?php if ($page < $total_pages) echo "?page=inventory&pageno=" . ($page + 1);
+                                                                else echo '#'; ?>">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
                     </div>
                 </div>
             <?php
             } else if (isset($_GET['page']) && $_GET['page'] == 'suppliers') {
+                $page = isset($_GET['pageno']) ? (int)$_GET['pageno'] : 1;
+                $start_from = ($page - 1) * $records_per_page;
+                $total_pages_sql = "SELECT COUNT(*) FROM suppliers";
+                $result = $conn->query($total_pages_sql);
+                $total_rows = $result->fetch_array()[0];
+                $total_pages = ceil($total_rows / $records_per_page);
+
+                $suppliers = fetchPaginatedSuppliers($conn, $start_from, $records_per_page);
             ?>
                 <div class="card">
                     <h3>Suppliers</h3>
@@ -283,20 +237,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </thead>
                         <tbody>
                             <?php
-                            $suppliers = $conn->query("SELECT * FROM suppliers");
-                            if ($suppliers->num_rows > 0) {
-                                while ($supplier = $suppliers->fetch_assoc()) {
+                            if (!empty($suppliers)) {
+                                foreach ($suppliers as $supplier) {
                                     echo "<tr>
-                                                <td>{$supplier['supplier_id']}</td>
-                                                <td>{$supplier['name']}</td>
-                                                <td>{$supplier['contact_number']}</td>
-                                                <td>{$supplier['address']}</td>
-                                                <td>{$supplier['contact_person']}</td>
-                                                <td>
-                                                    <a href='edit_supplier.php?supplier_id={$supplier['supplier_id']}' class='btn btn-warning btn-sm'>Edit</a>
-                                                    <a href='delete_supplier.php?supplier_id={$supplier['supplier_id']}' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this supplier?\")'>Delete</a>
-                                                </td>
-                                              </tr>";
+                                        <td>{$supplier['supplier_id']}</td>
+                                        <td>{$supplier['name']}</td>
+                                        <td>{$supplier['contact_number']}</td>
+                                        <td>{$supplier['address']}</td>
+                                        <td>{$supplier['contact_person']}</td>
+                                        <td>
+                                            <a href='edit_supplier.php?supplier_id={$supplier['supplier_id']}' class='btn btn-warning btn-sm'>Edit</a>
+                                            <a href='delete_supplier.php?supplier_id={$supplier['supplier_id']}' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this supplier?\")'>Delete</a>
+                                        </td>
+                                      </tr>";
                                 }
                             } else {
                                 echo "<tr><td colspan='6' class='text-center'>No Suppliers Found</td></tr>";
@@ -304,11 +257,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             ?>
                         </tbody>
                     </table>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
+                                <a class="page-link" href="<?php if ($page > 1) echo "?page=suppliers&pageno=" . ($page - 1);
+                                                            else echo '#'; ?>">Previous</a>
+                            </li>
+                            <?php for ($i = 1; $i <= $total_pages; $i++) { ?>
+                                <li class="page-item <?php if ($page == $i) echo 'active'; ?>"><a class="page-link" href="?page=suppliers&pageno=<?php echo $i; ?>"><?php echo $i; ?></a></li>
+                            <?php } ?>
+                            <li class="page-item <?php if ($page >= $total_pages) echo 'disabled'; ?>">
+                                <a class="page-link" href="<?php if ($page < $total_pages) echo "?page=suppliers&pageno=" . ($page + 1);
+                                                            else echo '#'; ?>">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
             <?php
+
             } elseif (isset($_GET['page']) && $_GET['page'] == 'stock_out') {
                 include 'stock_out.php';
+
+            ?>
+
+            <?php
             } else if (isset($_GET['page']) && $_GET['page'] == 'products') {
+                $page = isset($_GET['pageno']) ? (int)$_GET['pageno'] : 1;
+                $start_from = ($page - 1) * $records_per_page;
+                $total_pages_sql = "SELECT COUNT(*) FROM products";
+                $result = $conn->query($total_pages_sql);
+                $total_rows = $result->fetch_array()[0];
+                $total_pages = ceil($total_rows / $records_per_page);
+
+                $products = fetchPaginatedProducts($conn, $start_from, $records_per_page);
             ?>
                 <div class="card">
                     <h3>Products</h3>
@@ -325,19 +306,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </thead>
                         <tbody>
                             <?php
-                            $products = fetchProducts($conn);
                             if (!empty($products)) {
                                 foreach ($products as $product) {
                                     echo "<tr>
-                                                <td>{$product['product_id']}</td>
-                                                <td>{$product['name']}</td>
-                                                <td>{$product['category_name']}</td>
-                                                <td><img src='{$product['image']}' alt='{$product['name']}' width='50'></td>
-                                                <td>
-                                                    <a href='edit_product.php?id={$product['product_id']}' class='btn btn-warning btn-sm'>Edit</a>
-                                                    <a href='delete_product.php?id={$product['product_id']}' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this product?\")'>Delete</a>
-                                                </td>
-                                            </tr>";
+                                                            <td>{$product['product_id']}</td>
+                                                            <td>{$product['name']}</td>
+                                                            <td>{$product['category_name']}</td>
+                                                            <td><img src='{$product['image']}' alt='{$product['name']}' width='50'></td>
+                                                            <td>
+                                                                <a href='edit_product.php?id={$product['product_id']}' class='btn btn-warning btn-sm'>Edit</a>
+                                                                <a href='delete_product.php?id={$product['product_id']}' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this product?\")'>Delete</a>
+                                                            </td>
+                                                          </tr>";
                                 }
                             } else {
                                 echo "<tr><td colspan='5' class='text-center'>No Products Found</td></tr>";
@@ -345,114 +325,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             ?>
                         </tbody>
                     </table>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
+                                <a class="page-link" href="<?php if ($page > 1) echo "?page=products&pageno=" . ($page - 1);
+                                                            else echo '#'; ?>">Previous</a>
+                            </li>
+                            <?php for ($i = 1; $i <= $total_pages; $i++) { ?>
+                                <li class="page-item <?php if ($page == $i) echo 'active'; ?>"><a class="page-link" href="?page=products&pageno=<?php echo $i; ?>"><?php echo $i; ?></a></li>
+                            <?php } ?>
+                            <li class="page-item <?php if ($page >= $total_pages) echo 'disabled'; ?>">
+                                <a class="page-link" href="<?php if ($page < $total_pages) echo "?page=products&pageno=" . ($page + 1);
+                                                            else echo '#'; ?>">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
-            <?php
-            } else {
-            ?>
-                <div class="card">
-                    <div class="card-body">Please select an option from the sidebar.</div>
-                </div>
+
             <?php
             }
             ?>
         </div>
     </div>
-</body>
-
-</html>
-<?php
-if ($conn) {
-    $conn->close();
-}
-?>
-</div>
-</div>
-
-<!-- Modal -->
-<div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addStockModalLabel">Add Stock</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form method="POST" action="add_stock.php">
-                    <div class="mb-3">
-                        <label for="supplier_id" class="form-label">Supplier</label>
-                        <select class="form-select" name="supplier_id" id="supplier_id" required>
-                            <option value="">Select Supplier</option>
-                            <?php
-                            $suppliers = $conn->query("SELECT * FROM suppliers");
-                            while ($row = $suppliers->fetch_assoc()) {
-                                echo "<option value='{$row['supplier_id']}'>{$row['name']}</option>";
-                            }
-                            ?>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="product_id" class="form-label">Product</label>
-                        <select class="form-select" name="product_id" id="product_id" required>
-                            <option value="">Choose Product</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="quantity" class="form-label">Quantity</label>
-                        <input type="number" class="form-control" name="quantity" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="original_price" class="form-label">Original Price</label>
-                        <input type="number" step="0.01" class="form-control" name="original_price" id="original_price" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="selling_price" class="form-label">Selling Price</label>
-                        <input type="number" step="0.01" class="form-control" name="selling_price" id="selling_price" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label for="expiry_date" class="form-label">Expiry Date</label>
-                        <input type="date" class="form-control" name="expiry_date" required>
-                    </div>
-                    <button type="submit" name="add_stock" class="btn btn-success">Add Stock</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- jQuery for AJAX to fetch products -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $(document).ready(function() {
-        $('#supplier_id').change(function() {
-            var supplier_id = $(this).val();
-            if (supplier_id) {
-                $.ajax({
-                    url: 'fetch_products.php',
-                    type: 'POST',
-                    data: {
-                        supplier_id: supplier_id
-                    },
-                    success: function(response) {
-                        $('#product_id').html(response);
-                    }
-                });
-            } else {
-                $('#product_id').html('<option value="">Choose Product</option>');
-            }
-        });
-
-        $('#original_price').on('input', function() {
-            var originalPrice = parseFloat($(this).val());
-            if (!isNaN(originalPrice)) {
-                var sellingPrice = originalPrice * 1.30;
-                $('#selling_price').val(sellingPrice.toFixed(2));
-            } else {
-                $('#selling_price').val('');
-            }
-        });
-    });
-</script>
 </body>
 
 </html>

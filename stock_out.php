@@ -1,6 +1,15 @@
 <?php
 include 'db_connection.php';
 
+$records_per_page = 5; // Number of records per page
+
+$page = isset($_GET['pageno']) ? (int)$_GET['pageno'] : 1;
+$start_from = ($page - 1) * $records_per_page;
+$total_pages_sql = "SELECT COUNT(*) FROM stocks WHERE quantity > 0";
+$result = $conn->query($total_pages_sql);
+$total_rows = $result->fetch_array()[0];
+$total_pages = ceil($total_rows / $records_per_page);
+
 // Fetch available products with stock details
 $products = $conn->query("
     SELECT p.product_id, p.name, c.name AS category_name, s.quantity as stock_quantity, s.expiry_date, s.stock_id 
@@ -9,6 +18,7 @@ $products = $conn->query("
     LEFT JOIN categories c ON p.category_id = c.category_id
     WHERE s.quantity > 0 
     ORDER BY s.expiry_date ASC
+    LIMIT $start_from, $records_per_page
 ");
 
 if (!$products) {
@@ -78,7 +88,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <th>Product ID</th>
                                     <th>Name</th>
                                     <th>Category</th>
-                                    <th>Price</th>
                                     <th>Stock Quantity</th>
                                     <th>Expiry Date</th>
                                     <th>Stock Out Quantity</th>
@@ -92,7 +101,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <td><?php echo $row['product_id']; ?></td>
                                         <td><?php echo $row['name']; ?></td>
                                         <td><?php echo $row['category_name']; ?></td>
-
                                         <td><?php echo $row['stock_quantity']; ?></td>
                                         <td><?php echo $row['expiry_date']; ?></td>
                                         <td>
@@ -105,6 +113,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                     <button type="submit" class="btn btn-success">Process Stock Out</button>
                 </form>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
+                            <a class="page-link" href="<?php if ($page > 1) echo "?page=stock_out&pageno=" . ($page - 1);
+                                                        else echo '#'; ?>">Previous</a>
+                        </li>
+                        <?php for ($i = 1; $i <= $total_pages; $i++) { ?>
+                            <li class="page-item <?php if ($page == $i) echo 'active'; ?>"><a class="page-link" href="?page=stock_out&pageno=<?php echo $i; ?>"><?php echo $i; ?></a></li>
+                        <?php } ?>
+                        <li class="page-item <?php if ($page >= $total_pages) echo 'disabled'; ?>">
+                            <a class="page-link" href="<?php if ($page < $total_pages) echo "?page=stock_out&pageno=" . ($page + 1);
+                                                        else echo '#'; ?>">Next</a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
         </div>
     </div>

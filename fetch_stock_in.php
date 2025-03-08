@@ -1,7 +1,7 @@
 <?php
-function fetchStockInTransaction($conn)
+function fetchPaginatedStockInTransaction($conn, $start_from, $records_per_page)
 {
-    $query = "SELECT * FROM stockintransaction";
+    $query = "SELECT * FROM stockintransaction LIMIT $start_from, $records_per_page";
     $result = $conn->query($query);
     $stockInTransaction = [];
 
@@ -14,9 +14,9 @@ function fetchStockInTransaction($conn)
     return $stockInTransaction;
 }
 
-function fetchStocks($conn)
+function fetchPaginatedStocks($conn, $start_from, $records_per_page)
 {
-    $query = "SELECT * FROM stocks";
+    $query = "SELECT * FROM stocks LIMIT $start_from, $records_per_page";
     $result = $conn->query($query);
     $stocks = [];
 
@@ -29,9 +29,9 @@ function fetchStocks($conn)
     return $stocks;
 }
 
-function fetchSuppliers($conn)
+function fetchPaginatedSuppliers($conn, $start_from, $records_per_page)
 {
-    $query = "SELECT * FROM suppliers";
+    $query = "SELECT * FROM suppliers LIMIT $start_from, $records_per_page";
     $result = $conn->query($query);
     $suppliers = [];
 
@@ -44,12 +44,13 @@ function fetchSuppliers($conn)
     return $suppliers;
 }
 
-function fetchProducts($conn)
+function fetchPaginatedProducts($conn, $start_from, $records_per_page)
 {
     $query = "
         SELECT p.product_id, p.name, c.name as category_name, p.image
         FROM products p
         JOIN categories c ON p.category_id = c.category_id
+        LIMIT $start_from, $records_per_page
     ";
     $result = $conn->query($query);
     $products = [];
