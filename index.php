@@ -76,8 +76,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <thead>
                             <tr>
                                 <th>Stock-in ID</th>
-                                <th>Supplier ID</th>
-                                <th>Product ID</th>
+                                <th>Supplier Name</th>
+                                <th>Product Name</th>
                                 <th>Quantity</th>
                                 <th>Original Price</th>
                                 <th>Total Cost</th>
@@ -90,29 +90,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             if (!empty($stockInTransaction)) {
                                 foreach ($stockInTransaction as $detail) {
                                     echo "<tr>
-                                            <td>{$detail['Stock_in_id']}</td>
-                                            <td>{$detail['supplier_id']}</td>
-                                            <td>{$detail['product_id']}</td>
-                                            <td>{$detail['quantity']}</td>
-                                            <td>{$detail['orig_price']}</td>
-                                            <td>{$detail['total_cost']}</td>
-                                            <td>{$detail['purchase_date']}</td>
-                                            <td>
-                                                <form method='POST' action='edit_stock_in.php' style='display:inline-block;'>
-                                                    <input type='hidden' name='stock_in_id' value='{$detail['Stock_in_id']}'>
-                                                    <input type='hidden' name='supplier_id' value='{$detail['supplier_id']}'>
-                                                    <input type='hidden' name='product_id' value='{$detail['product_id']}'>
-                                                    <input type='hidden' name='quantity' value='{$detail['quantity']}'>
-                                                    <input type='hidden' name='total_cost' value='{$detail['total_cost']}'>
-                                                    <input type='hidden' name='purchase_date' value='{$detail['purchase_date']}'>
-                                                    <button type='submit' name='edit_stock_in' class='btn btn-warning btn-sm'>Edit</button>
-                                                </form>
-                                                <form method='POST' action='' style='display:inline-block;'>
-                                                    <input type='hidden' name='stock_in_id' value='{$detail['Stock_in_id']}'>
-                                                    <button type='submit' name='delete_stock_in' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this stock-in?\")'>Delete</button>
-                                                </form>
-                                            </td>
-                                          </tr>";
+                                        <td>{$detail['Stock_in_id']}</td>
+                                        <td>{$detail['supplier_name']}</td>
+                                        <td>{$detail['product_name']}</td>
+                                        <td>{$detail['quantity']}</td>
+                                        <td>{$detail['orig_price']}</td>
+                                        <td>{$detail['total_cost']}</td>
+                                        <td>{$detail['purchase_date']}</td>
+                                        <td>
+                                            <form method='POST' action='edit_stock_in.php' style='display:inline-block;'>
+                                                <input type='hidden' name='stock_in_id' value='{$detail['Stock_in_id']}'>
+                                                <input type='hidden' name='supplier_id' value='{$detail['supplier_id']}'>
+                                                <input type='hidden' name='product_id' value='{$detail['product_id']}'>
+                                                <input type='hidden' name='quantity' value='{$detail['quantity']}'>
+                                                <input type='hidden' name='total_cost' value='{$detail['total_cost']}'>
+                                                <input type='hidden' name='purchase_date' value='{$detail['purchase_date']}'>
+                                                <button type='submit' name='edit_stock_in' class='btn btn-warning btn-sm'>Edit</button>
+                                            </form>
+                                            <form method='POST' action='' style='display:inline-block;'>
+                                                <input type='hidden' name='stock_in_id' value='{$detail['Stock_in_id']}'>
+                                                <button type='submit' name='delete_stock_in' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this stock-in?\")'>Delete</button>
+                                            </form>
+                                        </td>
+                                      </tr>";
                                 }
                             } else {
                                 echo "<tr><td colspan='8' class='text-center'>No Stock-In Records</td></tr>";
@@ -137,8 +137,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </nav>
                 </div>
                 <div class="card">
-                    <h3>Stocks</h3>
 
+                    <h3>Stocks</h3>
+                    <button class="add-button" type="button" data-bs-toggle="modal" data-bs-target="#addStockModal">+ Add Stocks</button>
                     <!-- Collapsible Stocks Table -->
                     <button class="btn btn-primary mt-3" type="button" data-bs-toggle="collapse" data-bs-target="#stocksTable" aria-expanded="false" aria-controls="stocksTable">
                         Show/Hide Stocks
@@ -149,7 +150,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <tr>
                                     <th>Stock ID</th>
                                     <th>Stock-in ID</th>
-                                    <th>Product ID</th>
+                                    <th>Supplier Name</th>
+                                    <th>Product Name</th>
                                     <th>Expiry Date</th>
                                     <th>Quantity</th>
                                     <th>Selling Price</th>
@@ -169,26 +171,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 if (!empty($stocks)) {
                                     foreach ($stocks as $stock) {
                                         echo "<tr>
-                                                <td>{$stock['stock_id']}</td>
-                                                <td>{$stock['stock_in_id']}</td>
-                                                <td>{$stock['product_id']}</td>
-                                                <td>{$stock['expiry_date']}</td>
-                                                <td>{$stock['quantity']}</td>
-                                                <td>{$stock['selling_price']}</td>
-                                                <td>
-                                                    <form method='POST' action='edit_stock.php' style='display:inline-block;'>
-                                                        <input type='hidden' name='stock_id' value='{$stock['stock_id']}'>
-                                                        <button type='submit' name='edit_stock' class='btn btn-warning btn-sm'>Edit</button>
-                                                    </form>
-                                                    <form method='POST' action='' style='display:inline-block;'>
-                                                        <input type='hidden' name='stock_id' value='{$stock['stock_id']}'>
-                                                        <button type='submit' name='delete_stock' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this stock?\")'>Delete</button>
-                                                    </form>
-                                                </td>
-                                              </tr>";
+                                <td>{$stock['stock_id']}</td>
+                                <td>{$stock['stock_in_id']}</td>
+                                <td>{$stock['supplier_name']}</td>
+                                <td>{$stock['product_name']}</td>
+                                <td>{$stock['expiry_date']}</td>
+                                <td>{$stock['quantity']}</td>
+                                <td>{$stock['selling_price']}</td>
+                                <td>
+                                    <form method='POST' action='edit_stock.php' style='display:inline-block;'>
+                                        <input type='hidden' name='stock_id' value='{$stock['stock_id']}'>
+                                        <button type='submit' name='edit_stock' class='btn btn-warning btn-sm'>Edit</button>
+                                    </form>
+                                    <form method='POST' action='' style='display:inline-block;'>
+                                        <input type='hidden' name='stock_id' value='{$stock['stock_id']}'>
+                                        <button type='submit' name='delete_stock' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this stock?\")'>Delete</button>
+                                    </form>
+                                </td>
+                              </tr>";
                                     }
                                 } else {
-                                    echo "<tr><td colspan='7' class='text-center'>No stock found</td></tr>";
+                                    echo "<tr><td colspan='8' class='text-center'>No stock found</td></tr>";
                                 }
                                 ?>
                             </tbody>
@@ -248,7 +251,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <td>
                                             <a href='edit_supplier.php?supplier_id={$supplier['supplier_id']}' class='btn btn-warning btn-sm'>Edit</a>
                                             <a href='delete_supplier.php?supplier_id={$supplier['supplier_id']}' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this supplier?\")'>Delete</a>
-                                        </td>
+                                         </td>
                                       </tr>";
                                 }
                             } else {
