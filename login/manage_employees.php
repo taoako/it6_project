@@ -170,7 +170,7 @@ if ($result->num_rows > 0) {
                 </div>
             </div>
         </div>
-        <a href="../index.php" class="btn btn-secondary mt-3">Back to Dashboard</a>
+        <a href="../stock-in/index.php" class="btn btn-secondary mt-3">Back to Dashboard</a>
     </div>
 
     <!-- Add Employee Modal -->
