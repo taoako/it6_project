@@ -1,5 +1,5 @@
 <?php
-include 'db_connection.php';
+include '../dbcon/db_connection.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['edit_stock'])) {

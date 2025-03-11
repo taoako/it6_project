@@ -8,7 +8,7 @@ if (!isset($_SESSION['loggedin'])) {
     exit;
 }
 
-include '../db_connection.php';
+include '../dbcon/db_connection.php';
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         $stmt->close();
     }
-    
+
     // Add new employee
     if (isset($_POST['add_employee'])) {
         $name = $_POST['name']; // Changed from username to name
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $last_name = $_POST['last_name'];
         $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Hashing the password
         $role = $_POST['role'];
-        
+
         // Convert to prepared statement
         $stmt = $conn->prepare("INSERT INTO employee (name, password, first_name, last_name, role) 
                 VALUES (?, ?, ?, ?, ?)");
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         $stmt->close();
     }
-    
+
     // Update employee
     if (isset($_POST['update_employee'])) {
         $employee_id = $_POST['employee_id'];
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $first_name = $_POST['first_name'];
         $last_name = $_POST['last_name'];
         $role = $_POST['role'];
-        
+
         // Only update password if a new one is provided
         if (!empty($_POST['password'])) {
             $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     last_name = ?, role = ? WHERE employee_id = ?");
             $stmt->bind_param("ssssi", $name, $first_name, $last_name, $role, $employee_id);
         }
-        
+
         if ($stmt->execute()) {
             echo "<script>alert('Employee updated successfully!');</script>";
         } else {
@@ -90,6 +90,7 @@ if ($result->num_rows > 0) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -99,19 +100,22 @@ if ($result->num_rows > 0) {
         .btn-action {
             margin-right: 5px;
         }
+
         .modal-header {
             background-color: #198754;
             color: white;
         }
+
         .action-buttons {
             display: flex;
         }
     </style>
 </head>
+
 <body class="bg-light">
     <div class="container mt-5">
         <h2 class="text-center text-success">Daddy's Nook</h2>
-        
+
         <div class="card shadow mt-4">
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Employee List</h5>
@@ -141,20 +145,20 @@ if ($result->num_rows > 0) {
                                     <td><?php echo htmlspecialchars($employee['last_name']); ?></td>
                                     <td><?php echo htmlspecialchars($employee['role']); ?></td>
                                     <td class="action-buttons">
-                                        <button type="button" class="btn btn-warning btn-sm btn-action edit-btn" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#editEmployeeModal"
-                                                data-id="<?php echo $employee['employee_id']; ?>"
-                                                data-name="<?php echo htmlspecialchars($employee['name']); ?>"
-                                                data-firstname="<?php echo htmlspecialchars($employee['first_name']); ?>"
-                                                data-lastname="<?php echo htmlspecialchars($employee['last_name']); ?>"
-                                                data-role="<?php echo htmlspecialchars($employee['role']); ?>">
+                                        <button type="button" class="btn btn-warning btn-sm btn-action edit-btn"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editEmployeeModal"
+                                            data-id="<?php echo $employee['employee_id']; ?>"
+                                            data-name="<?php echo htmlspecialchars($employee['name']); ?>"
+                                            data-firstname="<?php echo htmlspecialchars($employee['first_name']); ?>"
+                                            data-lastname="<?php echo htmlspecialchars($employee['last_name']); ?>"
+                                            data-role="<?php echo htmlspecialchars($employee['role']); ?>">
                                             Edit
                                         </button>
                                         <form method="POST" action="" style="display: inline;">
                                             <input type="hidden" name="employee_id" value="<?php echo $employee['employee_id']; ?>">
-                                            <button type="submit" name="delete_employee" class="btn btn-danger btn-sm" 
-                                                    onclick="return confirm('Are you sure you want to delete this employee?');">
+                                            <button type="submit" name="delete_employee" class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Are you sure you want to delete this employee?');">
                                                 Delete
                                             </button>
                                         </form>
@@ -268,7 +272,7 @@ if ($result->num_rows > 0) {
                     const firstName = this.getAttribute('data-firstname');
                     const lastName = this.getAttribute('data-lastname');
                     const role = this.getAttribute('data-role');
-                    
+
                     document.getElementById('edit_employee_id').value = id;
                     document.getElementById('edit_name').value = name;
                     document.getElementById('edit_first_name').value = firstName;
@@ -280,6 +284,7 @@ if ($result->num_rows > 0) {
         });
     </script>
 </body>
+
 </html>
 <?php
 $conn->close();

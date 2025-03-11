@@ -8,7 +8,7 @@ if (!isset($_SESSION['loggedin'])) {
     exit;
 }
 
-include '../db_connection.php';
+include '../dbcon/db_connection.php';
 
 // Check if users table exists and has employee_id column
 $tableExists = $conn->query("SHOW TABLES LIKE 'users'")->num_rows > 0;
@@ -34,7 +34,7 @@ if ($tableExists) {
         phone VARCHAR(15) DEFAULT NULL,
         employee_id INT DEFAULT NULL
     )";
-    
+
     if (!$conn->query($create_table)) {
         echo "<script>alert('Error creating users table: " . $conn->error . "');</script>";
     }
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         $stmt->close();
     }
-    
+
     // Add new user
     if (isset($_POST['add_user'])) {
         $username = $_POST['username'];
@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $phone = $_POST['phone'];
         $employee_id = !empty($_POST['employee_id']) ? $_POST['employee_id'] : NULL;
         $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Hashing the password
-        
+
         // Convert to prepared statement
         $stmt = $conn->prepare("INSERT INTO users (username, password, first_name, last_name, email, phone, employee_id) 
                 VALUES (?, ?, ?, ?, ?, ?, ?)");
@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         $stmt->close();
     }
-    
+
     // Update user
     if (isset($_POST['update_user'])) {
         $user_id = $_POST['user_id'];
@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $email = $_POST['email'];
         $phone = $_POST['phone'];
         $employee_id = !empty($_POST['employee_id']) ? $_POST['employee_id'] : NULL;
-        
+
         // Only update password if a new one is provided
         if (!empty($_POST['password'])) {
             $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
@@ -101,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     last_name = ?, email = ?, phone = ?, employee_id = ? WHERE user_id = ?");
             $stmt->bind_param("sssssii", $username, $first_name, $last_name, $email, $phone, $employee_id, $user_id);
         }
-        
+
         if ($stmt->execute()) {
             echo "<script>alert('User updated successfully!');</script>";
         } else {
@@ -134,6 +134,7 @@ if ($result->num_rows > 0) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -143,19 +144,22 @@ if ($result->num_rows > 0) {
         .btn-action {
             margin-right: 5px;
         }
+
         .modal-header {
             background-color: #198754;
             color: white;
         }
+
         .action-buttons {
             display: flex;
         }
     </style>
 </head>
+
 <body class="bg-light">
     <div class="container mt-5">
         <h2 class="text-center text-success">Daddy's Nook</h2>
-        
+
         <div class="card shadow mt-4">
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">User List</h5>
@@ -189,22 +193,22 @@ if ($result->num_rows > 0) {
                                     <td><?php echo htmlspecialchars($user['email']); ?></td>
                                     <td><?php echo htmlspecialchars($user['phone']); ?></td>
                                     <td class="action-buttons">
-                                        <button type="button" class="btn btn-warning btn-sm btn-action edit-btn" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#editUserModal"
-                                                data-id="<?php echo $user['user_id']; ?>"
-                                                data-employeeid="<?php echo $user['employee_id']; ?>"
-                                                data-username="<?php echo htmlspecialchars($user['username']); ?>"
-                                                data-firstname="<?php echo htmlspecialchars($user['first_name']); ?>"
-                                                data-lastname="<?php echo htmlspecialchars($user['last_name']); ?>"
-                                                data-email="<?php echo htmlspecialchars($user['email']); ?>"
-                                                data-phone="<?php echo htmlspecialchars($user['phone']); ?>">
+                                        <button type="button" class="btn btn-warning btn-sm btn-action edit-btn"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editUserModal"
+                                            data-id="<?php echo $user['user_id']; ?>"
+                                            data-employeeid="<?php echo $user['employee_id']; ?>"
+                                            data-username="<?php echo htmlspecialchars($user['username']); ?>"
+                                            data-firstname="<?php echo htmlspecialchars($user['first_name']); ?>"
+                                            data-lastname="<?php echo htmlspecialchars($user['last_name']); ?>"
+                                            data-email="<?php echo htmlspecialchars($user['email']); ?>"
+                                            data-phone="<?php echo htmlspecialchars($user['phone']); ?>">
                                             Edit
                                         </button>
                                         <form method="POST" action="" style="display: inline;">
                                             <input type="hidden" name="user_id" value="<?php echo $user['user_id']; ?>">
-                                            <button type="submit" name="delete_user" class="btn btn-danger btn-sm" 
-                                                    onclick="return confirm('Are you sure you want to delete this user?');">
+                                            <button type="submit" name="delete_user" class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Are you sure you want to delete this user?');">
                                                 Delete
                                             </button>
                                         </form>
@@ -257,9 +261,9 @@ if ($result->num_rows > 0) {
                             <select class="form-select" id="employee_id" name="employee_id">
                                 <option value="">None</option>
                                 <?php foreach ($employees as $employee): ?>
-                                <option value="<?php echo $employee['employee_id']; ?>">
-                                    <?php echo htmlspecialchars($employee['employee_id'] . ' - ' . $employee['first_name'] . ' ' . $employee['last_name']); ?>
-                                </option>
+                                    <option value="<?php echo $employee['employee_id']; ?>">
+                                        <?php echo htmlspecialchars($employee['employee_id'] . ' - ' . $employee['first_name'] . ' ' . $employee['last_name']); ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -313,9 +317,9 @@ if ($result->num_rows > 0) {
                             <select class="form-select" id="edit_employee_id" name="employee_id">
                                 <option value="">None</option>
                                 <?php foreach ($employees as $employee): ?>
-                                <option value="<?php echo $employee['employee_id']; ?>">
-                                    <?php echo htmlspecialchars($employee['employee_id'] . ' - ' . $employee['first_name'] . ' ' . $employee['last_name']); ?>
-                                </option>
+                                    <option value="<?php echo $employee['employee_id']; ?>">
+                                        <?php echo htmlspecialchars($employee['employee_id'] . ' - ' . $employee['first_name'] . ' ' . $employee['last_name']); ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -346,20 +350,21 @@ if ($result->num_rows > 0) {
                     const lastName = this.getAttribute('data-lastname');
                     const email = this.getAttribute('data-email');
                     const phone = this.getAttribute('data-phone');
-                    
+
                     document.getElementById('edit_user_id').value = id;
                     document.getElementById('edit_employee_id').value = employeeId ? employeeId : '';
                     document.getElementById('edit_username').value = username;
                     document.getElementById('edit_first_name').value = firstName;
                     document.getElementById('edit_last_name').value = lastName;
                     document.getElementById('edit_email').value = email;
-                    document.getElementById('edit_phone').value = phone;   
+                    document.getElementById('edit_phone').value = phone;
                     document.getElementById('edit_password').value = '';
                 });
             });
         });
     </script>
 </body>
+
 </html>
 <?php
 $conn->close();

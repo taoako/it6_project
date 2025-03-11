@@ -1,5 +1,5 @@
 <?php
-include 'db_connection.php';
+include '../dbcon/db_connection.php';
 
 if (isset($_POST['supplier_id'])) {
     $supplier_id = $_POST['supplier_id'];

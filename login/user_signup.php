@@ -3,7 +3,7 @@ session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-include '../db_connection.php';
+include '../dbcon/db_connection.php';
 
 // Check if users table exists and has employee_id column
 $tableExists = $conn->query("SHOW TABLES LIKE 'users'")->num_rows > 0;
@@ -29,7 +29,7 @@ if ($tableExists) {
         phone VARCHAR(15) DEFAULT NULL,
         employee_id INT DEFAULT NULL
     )";
-    
+
     if (!$conn->query($create_table)) {
         echo "<script>alert('Error creating users table: " . $conn->error . "');</script>";
     }
@@ -44,12 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
     $phone = $_POST['phone'];
     $employee_id = !empty($_POST['employee_id']) ? $_POST['employee_id'] : NULL;
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Hashing the password
-    
+
     // Insert the new user into the database
     $stmt = $conn->prepare("INSERT INTO users (username, password, first_name, last_name, email, phone, employee_id) 
             VALUES (?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("ssssssi", $username, $password, $first_name, $last_name, $email, $phone, $employee_id);
-    
+
     if ($stmt->execute()) {
         echo "<script>alert('Signup successful! Please login.'); window.location.href='login.php';</script>";
         exit; // Stop further execution
@@ -62,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -76,6 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
             justify-content: center;
             padding: 20px 0;
         }
+
         .signup-card {
             background: rgba(255, 255, 255, 0.9);
             border-radius: 15px;
@@ -84,12 +86,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
             width: 100%;
             max-width: 500px;
         }
+
         .form-control {
             border-radius: 10px;
             padding: 0.75rem 1rem;
         }
     </style>
 </head>
+
 <body>
     <div class="signup-card">
         <h2 class="text-center mb-4">Sign Up User</h2>
@@ -156,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
             const confirmPasswordField = document.getElementById('confirm_password');
             const feedbackElement = document.getElementById('password-feedback');
             const submitButton = document.querySelector('button[type="submit"]');
-            
+
             function checkPasswords() {
                 if (passwordField.value !== confirmPasswordField.value) {
                     feedbackElement.classList.remove('d-none');
@@ -168,10 +172,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
                     return true;
                 }
             }
-            
+
             passwordField.addEventListener('input', checkPasswords);
             confirmPasswordField.addEventListener('input', checkPasswords);
-            
+
             // Add form validation
             window.validateForm = function() {
                 return checkPasswords();
@@ -179,6 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
         });
     </script>
 </body>
+
 </html>
 <?php
 $conn->close();

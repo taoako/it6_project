@@ -3,7 +3,7 @@ session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-include '../db_connection.php';
+include '../dbcon/db_connection.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'];
@@ -17,17 +17,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
-        
+
         // Check if the password needs to be verified with password_verify (for new hashed passwords)
         // or directly (for old plain text passwords)
         $password_matches = false;
-        
+
         if (password_verify($password, $user['password'])) {
             $password_matches = true;
         } elseif ($password === $user['password']) {
             // Legacy password check - consider updating to hashed version on successful login
             $password_matches = true;
-            
+
             // Update to hashed password
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             $update_stmt = $conn->prepare("UPDATE employee SET password = ? WHERE name = ?");
@@ -35,13 +35,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $update_stmt->execute();
             $update_stmt->close();
         }
-        
+
         if ($password_matches) {
             $_SESSION['loggedin'] = true;
             $_SESSION['username'] = $username;
             $_SESSION['role'] = $user['role']; // 'admin' or 'employee'
             $_SESSION['user_type'] = 'employee'; // To distinguish between employee and user
-            header("Location: ../index.php");
+            header("Location: ../stock-in/index.php");
             exit;
         }
     }
@@ -55,17 +55,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
-        
+
         // Check if the password needs to be verified with password_verify (for new hashed passwords)
         // or directly (for old plain text passwords)
         $password_matches = false;
-        
+
         if (password_verify($password, $user['password'])) {
             $password_matches = true;
         } elseif ($password === $user['password']) {
             // Legacy password check - consider updating to hashed version on successful login
             $password_matches = true;
-            
+
             // Update to hashed password
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             $update_stmt = $conn->prepare("UPDATE users SET password = ? WHERE username = ?");
@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $update_stmt->execute();
             $update_stmt->close();
         }
-        
+
         if ($password_matches) {
             $_SESSION['loggedin'] = true;
             $_SESSION['username'] = $username;
@@ -91,6 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -98,12 +99,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg,rgb(132, 240, 135),hsl(122, 50.20%, 44.90%));
+            background: linear-gradient(135deg, rgb(132, 240, 135), hsl(122, 50.20%, 44.90%));
             height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
         }
+
         .login-card {
             background: rgba(255, 255, 255, 0.9);
             border-radius: 15px;
@@ -112,12 +114,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             width: 100%;
             max-width: 400px;
         }
+
         .form-control {
             border-radius: 10px;
             padding: 0.75rem 1rem;
         }
     </style>
 </head>
+
 <body>
     <div class="login-card">
         <h2 class="text-center mb-4">Daddy's Nook</h2>
@@ -137,7 +141,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
         </form>
     </div>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

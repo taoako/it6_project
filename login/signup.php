@@ -1,5 +1,5 @@
 <?php
-include '../db_connection.php';
+include '../dbcon/db_connection.php';
 
 // Check if the employee table needs to be updated with new fields
 $result = $conn->query("SHOW COLUMNS FROM employee LIKE 'first_name'");
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $last_name = $_POST['last_name'];
     $password = $_POST['password'];
     $role = isset($_POST['role']) ? $_POST['role'] : 'employee';
-    
+
     // Hash the password for security
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt = $conn->prepare("INSERT INTO employee (name, password, first_name, last_name, role) 
             VALUES (?, ?, ?, ?, ?)");
     $stmt->bind_param("sssss", $name, $hashed_password, $first_name, $last_name, $role);
-            
+
     if ($stmt->execute()) {
         // Redirect to login page after successful signup
         echo "<script>alert('Registration successful! Please login.'); window.location.href='login.php';</script>";
@@ -50,6 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -57,13 +58,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg,rgb(132, 240, 135),hsl(122, 50.20%, 44.90%));
+            background: linear-gradient(135deg, rgb(132, 240, 135), hsl(122, 50.20%, 44.90%));
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px 0;
         }
+
         .signup-card {
             background: rgba(255, 255, 255, 0.9);
             border-radius: 15px;
@@ -72,12 +74,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             width: 100%;
             max-width: 500px;
         }
+
         .form-control {
             border-radius: 10px;
             padding: 0.75rem 1rem;
         }
     </style>
 </head>
+
 <body>
     <div class="signup-card">
         <h2 class="text-center mb-4">Sign Up for Daddy's Nook</h2>
@@ -112,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
         </form>
     </div>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Password confirmation check
@@ -121,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             const confirmPasswordField = document.getElementById('confirm_password');
             const feedbackElement = document.getElementById('password-feedback');
             const submitButton = document.getElementById('submit-btn');
-            
+
             function checkPasswords() {
                 if (passwordField.value !== confirmPasswordField.value) {
                     feedbackElement.classList.remove('d-none');
@@ -133,10 +137,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     return true;
                 }
             }
-            
+
             passwordField.addEventListener('input', checkPasswords);
             confirmPasswordField.addEventListener('input', checkPasswords);
-            
+
             // Add form validation
             window.validateForm = function() {
                 return checkPasswords();
@@ -144,4 +148,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         });
     </script>
 </body>
+
 </html>

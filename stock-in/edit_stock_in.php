@@ -1,5 +1,5 @@
 <?php
-include 'db_connection.php';
+include '../dbcon/db_connection.php';
 
 // 1) Check if we're handling a POST to update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

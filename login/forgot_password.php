@@ -1,10 +1,10 @@
 <?php
-include '../db_connection.php';
+include '../dbcon/db_connection.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $name = $_POST['name'];
     $new_password = $_POST['new_password'];
-    
+
     // Hash the new password for security
     $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
 
@@ -13,13 +13,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->bind_param("s", $name);
     $stmt->execute();
     $result = $stmt->get_result();
-    
+
     if ($result->num_rows > 0) {
         // Username exists, update the password using prepared statement
         $stmt->close();
         $update_stmt = $conn->prepare("UPDATE employee SET password = ? WHERE name = ?");
         $update_stmt->bind_param("ss", $hashed_password, $name);
-        
+
         if ($update_stmt->execute()) {
             echo "<script>alert('Password updated successfully!'); window.location.href='login.php';</script>";
         } else {
@@ -35,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -42,12 +43,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg,rgb(132, 240, 135),hsl(122, 50.20%, 44.90%));
+            background: linear-gradient(135deg, rgb(132, 240, 135), hsl(122, 50.20%, 44.90%));
             height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
         }
+
         .password-card {
             background: rgba(255, 255, 255, 0.9);
             border-radius: 15px;
@@ -56,12 +58,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             width: 100%;
             max-width: 500px;
         }
+
         .form-control {
             border-radius: 10px;
             padding: 0.75rem 1rem;
         }
     </style>
 </head>
+
 <body>
     <div class="password-card">
         <h2 class="text-center mb-4">Reset Your Password</h2>
@@ -87,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
         </form>
     </div>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Password confirmation check
@@ -96,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             const confirmPasswordField = document.getElementById('confirm_password');
             const feedbackElement = document.getElementById('password-feedback');
             const submitButton = document.getElementById('submit-btn');
-            
+
             function checkPasswords() {
                 if (newPasswordField.value !== confirmPasswordField.value) {
                     feedbackElement.classList.remove('d-none');
@@ -108,10 +112,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     return true;
                 }
             }
-            
+
             newPasswordField.addEventListener('input', checkPasswords);
             confirmPasswordField.addEventListener('input', checkPasswords);
-            
+
             // Add form validation
             window.validateForm = function() {
                 return checkPasswords();
@@ -119,4 +123,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         });
     </script>
 </body>
+
 </html>
