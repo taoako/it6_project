@@ -1,6 +1,6 @@
 <?php
 // Include your DB connection
-include 'db_connection.php';
+include '../dbcon/db_connection.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_stock'])) {
     $supplier_id = $_POST['supplier_id'];

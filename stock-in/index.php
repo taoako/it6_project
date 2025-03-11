@@ -1,10 +1,8 @@
 <?php
-include 'db_connection.php';
+include '../dbcon/db_connection.php';
 include 'fetch_stock_in.php';
 
 $records_per_page = 5;
-
-
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['delete_stock_in'])) {
@@ -35,7 +33,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daddy's Nook Employee Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -60,7 +57,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
         <div class="content">
             <?php
+            // -------------------------
+            // INVENTORY (Stock In & Stocks)
+            // -------------------------
             if (isset($_GET['page']) && $_GET['page'] == 'inventory') {
+                // Pagination for Stock In
                 $page = isset($_GET['pageno']) ? (int)$_GET['pageno'] : 1;
                 $start_from = ($page - 1) * $records_per_page;
                 $total_pages_sql = "SELECT COUNT(*) FROM stockintransaction";
@@ -98,15 +99,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <td>{$detail['total_cost']}</td>
                                         <td>{$detail['purchase_date']}</td>
                                         <td>
-                                            <form method='POST' action='edit_stock_in.php' style='display:inline-block;'>
-                                                <input type='hidden' name='stock_in_id' value='{$detail['Stock_in_id']}'>
-                                                <input type='hidden' name='supplier_id' value='{$detail['supplier_id']}'>
-                                                <input type='hidden' name='product_id' value='{$detail['product_id']}'>
-                                                <input type='hidden' name='quantity' value='{$detail['quantity']}'>
-                                                <input type='hidden' name='total_cost' value='{$detail['total_cost']}'>
-                                                <input type='hidden' name='purchase_date' value='{$detail['purchase_date']}'>
-                                                <button type='submit' name='edit_stock_in' class='btn btn-warning btn-sm'>Edit</button>
-                                            </form>
+                                            <!-- Replaced the POST form with a simple link -->
+                                            <a href='edit_stock_in.php?stock_in_id={$detail['Stock_in_id']}'
+                                               class='btn btn-warning btn-sm'>
+                                               Edit
+                                            </a>
+
                                             <form method='POST' action='' style='display:inline-block;'>
                                                 <input type='hidden' name='stock_in_id' value='{$detail['Stock_in_id']}'>
                                                 <button type='submit' name='delete_stock_in' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this stock-in?\")'>Delete</button>
@@ -123,23 +121,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <nav aria-label="Page navigation">
                         <ul class="pagination">
                             <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
-                                <a class="page-link" href="<?php if ($page > 1) echo "?page=inventory&pageno=" . ($page - 1);
-                                                            else echo '#'; ?>">Previous</a>
+                                <a class="page-link" href="<?php
+                                                            if ($page > 1) echo "?page=inventory&pageno=" . ($page - 1);
+                                                            else echo '#';
+                                                            ?>">Previous</a>
                             </li>
                             <?php for ($i = 1; $i <= $total_pages; $i++) { ?>
-                                <li class="page-item <?php if ($page == $i) echo 'active'; ?>"><a class="page-link" href="?page=inventory&pageno=<?php echo $i; ?>"><?php echo $i; ?></a></li>
+                                <li class="page-item <?php if ($page == $i) echo 'active'; ?>">
+                                    <a class="page-link" href="?page=inventory&pageno=<?php echo $i; ?>">
+                                        <?php echo $i; ?>
+                                    </a>
+                                </li>
                             <?php } ?>
                             <li class="page-item <?php if ($page >= $total_pages) echo 'disabled'; ?>">
-                                <a class="page-link" href="<?php if ($page < $total_pages) echo "?page=inventory&pageno=" . ($page + 1);
-                                                            else echo '#'; ?>">Next</a>
+                                <a class="page-link" href="<?php
+                                                            if ($page < $total_pages) echo "?page=inventory&pageno=" . ($page + 1);
+                                                            else echo '#';
+                                                            ?>">Next</a>
                             </li>
                         </ul>
                     </nav>
                 </div>
-                <div class="card">
 
+                <!-- Stocks Section -->
+                <div class="card">
                     <h3>Stocks</h3>
-                    <button class="add-button" type="button" data-bs-toggle="modal" data-bs-target="#addStockModal">+ Add Stocks</button>
+                    <!-- If you want a modal, ensure you have the modal HTML. 
+                         Otherwise, just link to add_stock.php. -->
+
                     <!-- Collapsible Stocks Table -->
                     <button class="btn btn-primary mt-3" type="button" data-bs-toggle="collapse" data-bs-target="#stocksTable" aria-expanded="false" aria-controls="stocksTable">
                         Show/Hide Stocks
@@ -160,6 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </thead>
                             <tbody>
                                 <?php
+                                // Pagination for Stocks
                                 $page = isset($_GET['pageno']) ? (int)$_GET['pageno'] : 1;
                                 $start_from = ($page - 1) * $records_per_page;
                                 $total_pages_sql = "SELECT COUNT(*) FROM stocks";
@@ -171,24 +181,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 if (!empty($stocks)) {
                                     foreach ($stocks as $stock) {
                                         echo "<tr>
-                                <td>{$stock['stock_id']}</td>
-                                <td>{$stock['stock_in_id']}</td>
-                                <td>{$stock['supplier_name']}</td>
-                                <td>{$stock['product_name']}</td>
-                                <td>{$stock['expiry_date']}</td>
-                                <td>{$stock['quantity']}</td>
-                                <td>{$stock['selling_price']}</td>
-                                <td>
-                                    <form method='POST' action='edit_stock.php' style='display:inline-block;'>
-                                        <input type='hidden' name='stock_id' value='{$stock['stock_id']}'>
-                                        <button type='submit' name='edit_stock' class='btn btn-warning btn-sm'>Edit</button>
-                                    </form>
-                                    <form method='POST' action='' style='display:inline-block;'>
-                                        <input type='hidden' name='stock_id' value='{$stock['stock_id']}'>
-                                        <button type='submit' name='delete_stock' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this stock?\")'>Delete</button>
-                                    </form>
-                                </td>
-                              </tr>";
+                                            <td>{$stock['stock_id']}</td>
+                                            <td>{$stock['stock_in_id']}</td>
+                                            <td>{$stock['supplier_name']}</td>
+                                            <td>{$stock['product_name']}</td>
+                                            <td>{$stock['expiry_date']}</td>
+                                            <td>{$stock['quantity']}</td>
+                                            <td>{$stock['selling_price']}</td>
+                                            <td>
+                                                <form method='POST' action='edit_stock.php' style='display:inline-block;'>
+                                                    <input type='hidden' name='stock_id' value='{$stock['stock_id']}'>
+                                                    <button type='submit' name='edit_stock' class='btn btn-warning btn-sm'>Edit</button>
+                                                </form>
+                                                <form method='POST' action='' style='display:inline-block;'>
+                                                    <input type='hidden' name='stock_id' value='{$stock['stock_id']}'>
+                                                    <button type='submit' name='delete_stock' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this stock?\")'>Delete</button>
+                                                </form>
+                                            </td>
+                                          </tr>";
                                     }
                                 } else {
                                     echo "<tr><td colspan='8' class='text-center'>No stock found</td></tr>";
@@ -199,21 +209,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <nav aria-label="Page navigation">
                             <ul class="pagination">
                                 <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
-                                    <a class="page-link" href="<?php if ($page > 1) echo "?page=inventory&pageno=" . ($page - 1);
-                                                                else echo '#'; ?>">Previous</a>
+                                    <a class="page-link" href="<?php
+                                                                if ($page > 1) echo "?page=inventory&pageno=" . ($page - 1);
+                                                                else echo '#';
+                                                                ?>">Previous</a>
                                 </li>
                                 <?php for ($i = 1; $i <= $total_pages; $i++) { ?>
-                                    <li class="page-item <?php if ($page == $i) echo 'active'; ?>"><a class="page-link" href="?page=inventory&pageno=<?php echo $i; ?>"><?php echo $i; ?></a></li>
+                                    <li class="page-item <?php if ($page == $i) echo 'active'; ?>">
+                                        <a class="page-link" href="?page=inventory&pageno=<?php echo $i; ?>">
+                                            <?php echo $i; ?>
+                                        </a>
+                                    </li>
                                 <?php } ?>
                                 <li class="page-item <?php if ($page >= $total_pages) echo 'disabled'; ?>">
-                                    <a class="page-link" href="<?php if ($page < $total_pages) echo "?page=inventory&pageno=" . ($page + 1);
-                                                                else echo '#'; ?>">Next</a>
+                                    <a class="page-link" href="<?php
+                                                                if ($page < $total_pages) echo "?page=inventory&pageno=" . ($page + 1);
+                                                                else echo '#';
+                                                                ?>">Next</a>
                                 </li>
                             </ul>
                         </nav>
                     </div>
                 </div>
             <?php
+                // -------------------------
+                // SUPPLIERS
+                // -------------------------
             } else if (isset($_GET['page']) && $_GET['page'] == 'suppliers') {
                 $page = isset($_GET['pageno']) ? (int)$_GET['pageno'] : 1;
                 $start_from = ($page - 1) * $records_per_page;
@@ -251,7 +272,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <td>
                                             <a href='edit_supplier.php?supplier_id={$supplier['supplier_id']}' class='btn btn-warning btn-sm'>Edit</a>
                                             <a href='delete_supplier.php?supplier_id={$supplier['supplier_id']}' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this supplier?\")'>Delete</a>
-                                         </td>
+                                        </td>
                                       </tr>";
                                 }
                             } else {
@@ -263,27 +284,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <nav aria-label="Page navigation">
                         <ul class="pagination">
                             <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
-                                <a class="page-link" href="<?php if ($page > 1) echo "?page=suppliers&pageno=" . ($page - 1);
-                                                            else echo '#'; ?>">Previous</a>
+                                <a class="page-link" href="<?php
+                                                            if ($page > 1) echo "?page=suppliers&pageno=" . ($page - 1);
+                                                            else echo '#';
+                                                            ?>">Previous</a>
                             </li>
                             <?php for ($i = 1; $i <= $total_pages; $i++) { ?>
-                                <li class="page-item <?php if ($page == $i) echo 'active'; ?>"><a class="page-link" href="?page=suppliers&pageno=<?php echo $i; ?>"><?php echo $i; ?></a></li>
+                                <li class="page-item <?php if ($page == $i) echo 'active'; ?>">
+                                    <a class="page-link" href="?page=suppliers&pageno=<?php echo $i; ?>">
+                                        <?php echo $i; ?>
+                                    </a>
+                                </li>
                             <?php } ?>
                             <li class="page-item <?php if ($page >= $total_pages) echo 'disabled'; ?>">
-                                <a class="page-link" href="<?php if ($page < $total_pages) echo "?page=suppliers&pageno=" . ($page + 1);
-                                                            else echo '#'; ?>">Next</a>
+                                <a class="page-link" href="<?php
+                                                            if ($page < $total_pages) echo "?page=suppliers&pageno=" . ($page + 1);
+                                                            else echo '#';
+                                                            ?>">Next</a>
                             </li>
                         </ul>
                     </nav>
                 </div>
             <?php
-
+                // -------------------------
+                // STOCK OUT
+                // -------------------------
             } elseif (isset($_GET['page']) && $_GET['page'] == 'stock_out') {
                 include 'stock_out.php';
 
-            ?>
-
-            <?php
+                // -------------------------
+                // PRODUCTS
+                // -------------------------
             } else if (isset($_GET['page']) && $_GET['page'] == 'products') {
                 $page = isset($_GET['pageno']) ? (int)$_GET['pageno'] : 1;
                 $start_from = ($page - 1) * $records_per_page;
@@ -312,15 +343,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             if (!empty($products)) {
                                 foreach ($products as $product) {
                                     echo "<tr>
-                                                            <td>{$product['product_id']}</td>
-                                                            <td>{$product['name']}</td>
-                                                            <td>{$product['category_name']}</td>
-                                                            <td><img src='{$product['image']}' alt='{$product['name']}' width='50'></td>
-                                                            <td>
-                                                                <a href='edit_product.php?id={$product['product_id']}' class='btn btn-warning btn-sm'>Edit</a>
-                                                                <a href='delete_product.php?id={$product['product_id']}' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this product?\")'>Delete</a>
-                                                            </td>
-                                                          </tr>";
+                                        <td>{$product['product_id']}</td>
+                                        <td>{$product['name']}</td>
+                                        <td>{$product['category_name']}</td>
+                                        <td><img src='{$product['image']}' alt='{$product['name']}' width='50'></td>
+                                        <td>
+                                            <a href='edit_product.php?id={$product['product_id']}' class='btn btn-warning btn-sm'>Edit</a>
+                                            <a href='delete_product.php?id={$product['product_id']}' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this product?\")'>Delete</a>
+                                        </td>
+                                      </tr>";
                                 }
                             } else {
                                 echo "<tr><td colspan='5' class='text-center'>No Products Found</td></tr>";
@@ -331,23 +362,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <nav aria-label="Page navigation">
                         <ul class="pagination">
                             <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
-                                <a class="page-link" href="<?php if ($page > 1) echo "?page=products&pageno=" . ($page - 1);
-                                                            else echo '#'; ?>">Previous</a>
+                                <a class="page-link" href="<?php
+                                                            if ($page > 1) echo "?page=products&pageno=" . ($page - 1);
+                                                            else echo '#';
+                                                            ?>">Previous</a>
                             </li>
                             <?php for ($i = 1; $i <= $total_pages; $i++) { ?>
-                                <li class="page-item <?php if ($page == $i) echo 'active'; ?>"><a class="page-link" href="?page=products&pageno=<?php echo $i; ?>"><?php echo $i; ?></a></li>
+                                <li class="page-item <?php if ($page == $i) echo 'active'; ?>">
+                                    <a class="page-link" href="?page=products&pageno=<?php echo $i; ?>">
+                                        <?php echo $i; ?>
+                                    </a>
+                                </li>
                             <?php } ?>
                             <li class="page-item <?php if ($page >= $total_pages) echo 'disabled'; ?>">
-                                <a class="page-link" href="<?php if ($page < $total_pages) echo "?page=products&pageno=" . ($page + 1);
-                                                            else echo '#'; ?>">Next</a>
+                                <a class="page-link" href="<?php
+                                                            if ($page < $total_pages) echo "?page=products&pageno=" . ($page + 1);
+                                                            else echo '#';
+                                                            ?>">Next</a>
                             </li>
                         </ul>
                     </nav>
                 </div>
-
             <?php
             }
             ?>
+        </div>
+    </div>
+
+    <!-- Optional: Modal for "Add Stocks" if you want a Bootstrap modal.
+         Otherwise, remove this. -->
+    <div class="modal fade" id="addStockModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <!-- your "Add Stocks" form or content here -->
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Stocks</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Put your add_stock form here or remove the modal usage.</p>
+                </div>
+            </div>
         </div>
     </div>
 </body>

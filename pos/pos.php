@@ -2,7 +2,7 @@
 session_start();
 
 // Include dependencies
-include '../db_connection.php';
+include '../dbcon/db_connection.php';
 include 'pos_functions.php';
 include 'cart_functions.php';
 
