@@ -1,6 +1,21 @@
 <?php
+session_start(); // Start the session to access session variables
 include '../dbcon/db_connection.php';
 include 'fetch_stock_in.php';
+
+// Check if the user is logged in
+if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+    // Not logged in, redirect to login page
+    header("Location: ../login/login.php");
+    exit;
+}
+
+// Check user role - only allow admin access to this page
+if ($_SESSION['role'] !== 'admin') {
+    // Employee trying to access admin area, redirect to POS
+    header("Location: ../pos/pos.php");
+    exit;
+}
 
 $records_per_page = 5;
 
@@ -33,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <head>
     <meta charset="UTF-8">
-    <title>Daddy's Nook Employee Dashboard</title>
+    <title>Daddy's Nook Admin Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -43,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <body>
     <div class="dashboard-header">
         <img src="../pics/daddys.jpg" alt="Daddy's Nook Logo">
-        Daddy's Nook Employee Dashboard
+        Daddy's Nook Admin Dashboard
     </div>
     <div class="container">
         <div class="sidebar">
@@ -52,8 +67,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <button onclick="location.href='index.php?page=stock_out'"><i class="fas fa-minus-circle"></i> Stock Out</button>
             <button onclick="location.href='index.php?page=suppliers'"><i class="fas fa-truck"></i> Suppliers</button>
             <button onclick="location.href='index.php?page=products'"><i class="fas fa-box"></i> Products</button>
-            <button class="logout" onclick="location.href='../login/login.php'"><i class="fas fa-sign-out-alt"></i> Logout</button>
-            <button onclick="location.href='../login/manage_employees.php'"><i class="bi bi-person-gear"></i> Manage Employees</button>
+            <button onclick="location.href='../login/manage_employees.php'"><i class="fas fa-users"></i>Employees</button>
+            <button onclick="location.href='../login/manage_users.php'"><i class="fas fa-users"></i>Users</button>
+            <button onclick="location.href='../pos/pos.php'"><i class="fas fa-cash-register"></i> POS System</button>
+            <div class="user-info">
+                <span>Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?> (Admin)</span>
+            </div>
+            <button class="logout" onclick="location.href='../login/logout.php'"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
         <div class="content">
             <?php
@@ -384,17 +404,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </nav>
                 </div>
             <?php
+            } else {
+                // Default to inventory page if no page is specified
+                header("Location: index.php?page=inventory");
+                exit;
             }
             ?>
         </div>
     </div>
 
-    <!-- Optional: Modal for "Add Stocks" if you want a Bootstrap modal.
-         Otherwise, remove this. -->
+    <!-- Optional: Modal for "Add Stocks" if you want a Bootstrap modal -->
     <div class="modal fade" id="addStockModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <!-- your "Add Stocks" form or content here -->
                 <div class="modal-header">
                     <h5 class="modal-title">Add Stocks</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

@@ -10,42 +10,11 @@ if (!isset($_SESSION['loggedin'])) {
 
 include '../dbcon/db_connection.php';
 
-// Check if users table exists and has employee_id column
-$tableExists = $conn->query("SHOW TABLES LIKE 'users'")->num_rows > 0;
-if ($tableExists) {
-    // Check if employee_id column exists
-    $result = $conn->query("SHOW COLUMNS FROM users LIKE 'employee_id'");
-    if ($result->num_rows == 0) {
-        // Add employee_id column if it doesn't exist
-        $alter_table = "ALTER TABLE users ADD COLUMN employee_id INT DEFAULT NULL";
-        if (!$conn->query($alter_table)) {
-            echo "<script>alert('Error adding employee_id column: " . $conn->error . "');</script>";
-        }
-    }
-} else {
-    // Create the users table if it doesn't exist
-    $create_table = "CREATE TABLE users (
-        user_id INT AUTO_INCREMENT PRIMARY KEY,
-        username VARCHAR(100) NOT NULL,
-        password VARCHAR(100) NOT NULL,
-        first_name VARCHAR(50) DEFAULT NULL,
-        last_name VARCHAR(50) DEFAULT NULL,
-        email VARCHAR(100) DEFAULT NULL,
-        phone VARCHAR(15) DEFAULT NULL,
-        employee_id INT DEFAULT NULL
-    )";
-
-    if (!$conn->query($create_table)) {
-        echo "<script>alert('Error creating users table: " . $conn->error . "');</script>";
-    }
-}
-
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Delete user
     if (isset($_POST['delete_user'])) {
         $user_id = $_POST['user_id'];
-        // Convert to prepared statement
         $stmt = $conn->prepare("DELETE FROM users WHERE user_id = ?");
         $stmt->bind_param("i", $user_id);
         if ($stmt->execute()) {
@@ -63,10 +32,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $last_name = $_POST['last_name'];
         $email = $_POST['email'];
         $phone = $_POST['phone'];
-        $employee_id = !empty($_POST['employee_id']) ? $_POST['employee_id'] : NULL;
+        $employee_id = $_POST['employee_id']; // This must be a valid employee_id from the employee table
         $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Hashing the password
 
-        // Convert to prepared statement
         $stmt = $conn->prepare("INSERT INTO users (username, password, first_name, last_name, email, phone, employee_id) 
                 VALUES (?, ?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("ssssssi", $username, $password, $first_name, $last_name, $email, $phone, $employee_id);
@@ -86,17 +54,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $last_name = $_POST['last_name'];
         $email = $_POST['email'];
         $phone = $_POST['phone'];
-        $employee_id = !empty($_POST['employee_id']) ? $_POST['employee_id'] : NULL;
+        $employee_id = $_POST['employee_id']; // This must be a valid employee_id from the employee table
 
         // Only update password if a new one is provided
         if (!empty($_POST['password'])) {
             $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-            // Prepare statement with password update
             $stmt = $conn->prepare("UPDATE users SET username = ?, first_name = ?, 
                     last_name = ?, email = ?, phone = ?, employee_id = ?, password = ? WHERE user_id = ?");
             $stmt->bind_param("sssssiis", $username, $first_name, $last_name, $email, $phone, $employee_id, $password, $user_id);
         } else {
-            // Prepare statement without password update
             $stmt = $conn->prepare("UPDATE users SET username = ?, first_name = ?, 
                     last_name = ?, email = ?, phone = ?, employee_id = ? WHERE user_id = ?");
             $stmt->bind_param("sssssii", $username, $first_name, $last_name, $email, $phone, $employee_id, $user_id);
@@ -220,10 +186,8 @@ if ($result->num_rows > 0) {
                 </div>
             </div>
         </div>
-        <div class="mt-3 d-flex">
-            <a href="../index.php" class="btn btn-secondary me-2">Back to Dashboard</a>
-            <a href="manage_employees.php" class="btn btn-primary">Manage Employees</a>
-        </div>
+        <!-- Corrected "Back to Dashboard" link -->
+        <a href="../index.php" class="btn btn-secondary mt-3">Back to Dashboard</a>
     </div>
 
     <!-- Add User Modal -->
@@ -258,8 +222,8 @@ if ($result->num_rows > 0) {
                         </div>
                         <div class="mb-3">
                             <label for="employee_id" class="form-label">Employee ID</label>
-                            <select class="form-select" id="employee_id" name="employee_id">
-                                <option value="">None</option>
+                            <select class="form-select" id="employee_id" name="employee_id" required>
+                                <option value="">Select Employee</option>
                                 <?php foreach ($employees as $employee): ?>
                                     <option value="<?php echo $employee['employee_id']; ?>">
                                         <?php echo htmlspecialchars($employee['employee_id'] . ' - ' . $employee['first_name'] . ' ' . $employee['last_name']); ?>
@@ -314,8 +278,8 @@ if ($result->num_rows > 0) {
                         </div>
                         <div class="mb-3">
                             <label for="edit_employee_id" class="form-label">Employee ID</label>
-                            <select class="form-select" id="edit_employee_id" name="employee_id">
-                                <option value="">None</option>
+                            <select class="form-select" id="edit_employee_id" name="employee_id" required>
+                                <option value="">Select Employee</option>
                                 <?php foreach ($employees as $employee): ?>
                                     <option value="<?php echo $employee['employee_id']; ?>">
                                         <?php echo htmlspecialchars($employee['employee_id'] . ' - ' . $employee['first_name'] . ' ' . $employee['last_name']); ?>

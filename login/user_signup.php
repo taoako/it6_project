@@ -5,54 +5,36 @@ ini_set('display_errors', 1);
 
 include '../dbcon/db_connection.php';
 
-// Check if users table exists and has employee_id column
-$tableExists = $conn->query("SHOW TABLES LIKE 'users'")->num_rows > 0;
-if ($tableExists) {
-    // Check if employee_id column exists
-    $result = $conn->query("SHOW COLUMNS FROM users LIKE 'employee_id'");
-    if ($result->num_rows == 0) {
-        // Add employee_id column if it doesn't exist
-        $alter_table = "ALTER TABLE users ADD COLUMN employee_id INT DEFAULT NULL";
-        if (!$conn->query($alter_table)) {
-            echo "<script>alert('Error adding employee_id column: " . $conn->error . "');</script>";
-        }
-    }
-} else {
-    // Create the users table if it doesn't exist
-    $create_table = "CREATE TABLE users (
-        user_id INT AUTO_INCREMENT PRIMARY KEY,
-        username VARCHAR(100) NOT NULL,
-        password VARCHAR(100) NOT NULL,
-        first_name VARCHAR(50) DEFAULT NULL,
-        last_name VARCHAR(50) DEFAULT NULL,
-        email VARCHAR(100) DEFAULT NULL,
-        phone VARCHAR(15) DEFAULT NULL,
-        employee_id INT DEFAULT NULL
-    )";
-
-    if (!$conn->query($create_table)) {
-        echo "<script>alert('Error creating users table: " . $conn->error . "');</script>";
-    }
-}
-
-// Handle signup form submission
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'];
     $first_name = $_POST['first_name'];
     $last_name = $_POST['last_name'];
     $email = $_POST['email'];
     $phone = $_POST['phone'];
-    $employee_id = !empty($_POST['employee_id']) ? $_POST['employee_id'] : NULL;
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Hashing the password
+    $role = $_POST['role']; // Role selected by the user
 
-    // Insert the new user into the database
-    $stmt = $conn->prepare("INSERT INTO users (username, password, first_name, last_name, email, phone, employee_id) 
+    // Insert into users table
+    $stmt = $conn->prepare("INSERT INTO users (username, password, first_name, last_name, email, phone, role) 
             VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssssi", $username, $password, $first_name, $last_name, $email, $phone, $employee_id);
+    $stmt->bind_param("sssssss", $username, $password, $first_name, $last_name, $email, $phone, $role);
 
     if ($stmt->execute()) {
-        echo "<script>alert('Signup successful! Please login.'); window.location.href='login.php';</script>";
-        exit; // Stop further execution
+        // Get the last inserted user ID
+        $user_id = $stmt->insert_id;
+
+        // Insert into employee table
+        $employee_stmt = $conn->prepare("INSERT INTO employee (name, first_name, last_name, role) 
+                VALUES (?, ?, ?, ?)");
+        $employee_stmt->bind_param("ssss", $username, $first_name, $last_name, $role);
+
+        if ($employee_stmt->execute()) {
+            echo "<script>alert('Signup successful! Please login.'); window.location.href='login.php';</script>";
+            exit;
+        } else {
+            echo "<script>alert('Error adding employee: " . $conn->error . "');</script>";
+        }
+        $employee_stmt->close();
     } else {
         echo "<script>alert('Error: " . $conn->error . "');</script>";
     }
@@ -119,21 +101,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
                 <input type="text" class="form-control" name="phone" required>
             </div>
             <div class="mb-3">
-                <label for="employee_id" class="form-label">Employee ID</label>
-                <select class="form-select" name="employee_id" required>
-                    <option value="">Select Employee ID</option>
-                    <?php
-                    $sql_employees = "SELECT employee_id, first_name, last_name FROM employee";
-                    $result_employees = $conn->query($sql_employees);
-                    if ($result_employees && $result_employees->num_rows > 0) {
-                        while ($row = $result_employees->fetch_assoc()) {
-                            echo "<option value='{$row['employee_id']}'>{$row['employee_id']} - {$row['first_name']} {$row['last_name']}</option>";
-                        }
-                    }
-                    ?>
-                </select>
-            </div>
-            <div class="mb-3">
                 <label for="password" class="form-label">Password</label>
                 <input type="password" class="form-control" id="password" name="password" required>
             </div>
@@ -144,9 +111,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
                     Passwords do not match.
                 </div>
             </div>
-            <!-- Updated Button Section -->
+            <div class="mb-3">
+                <label for="role" class="form-label">Role</label>
+                <select class="form-select" id="role" name="role" required>
+                    <option value="admin">Admin</option>
+                    <option value="employee">Employee</option>
+                </select>
+            </div>
             <div class="d-grid gap-2">
                 <button type="submit" name="signup" class="btn btn-success btn-lg">Sign Up</button>
+                <a href="forgot_password.php" class="btn btn-secondary">Forgot Password?</a>
                 <a href="login.php" class="btn btn-secondary">Back to Login</a>
             </div>
         </form>
@@ -185,6 +159,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
 </body>
 
 </html>
-<?php
-$conn->close();
-?>
